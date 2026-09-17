@@ -192,34 +192,6 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
           <div className="flex-1" />
         )}
 
-        <div className={`space-y-0.5 border-t border-ink-100 py-3 ${isIconOnly ? 'px-2' : 'px-3'}`}>
-          <NavLink to="/settings" title="Settings" className={itemClass} onClick={onCloseMobile}>
-            <SettingsIcon className="size-4.5 shrink-0" />
-            {!isIconOnly ? <span>Settings</span> : null}
-          </NavLink>
-          <NavLink
-            to="/subscription"
-            title="Subscription"
-            className={itemClass}
-            onClick={onCloseMobile}
-          >
-            <CardIcon className="size-4.5 shrink-0" />
-            {!isIconOnly ? <span>Subscription</span> : null}
-          </NavLink>
-          <button
-            type="button"
-            title="Help"
-            onClick={() => comingSoon('The help centre')}
-            className={[
-              'group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[0.84rem] font-medium text-ink-600 transition-colors hover:bg-ink-100/70 hover:text-ink-900',
-              isIconOnly ? 'justify-center px-0' : '',
-            ].join(' ')}
-          >
-            <HelpIcon className="size-4.5 shrink-0" />
-            {!isIconOnly ? <span>Help</span> : null}
-          </button>
-        </div>
-
         <div className={`relative border-t border-ink-100 p-3 ${isIconOnly ? 'px-2' : ''}`} dir="ltr">
           <div className={`flex items-center gap-2.5 ${isIconOnly ? 'flex-col' : ''}`}>
             <button
@@ -265,6 +237,45 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
                   <p className="truncate text-[0.8rem] font-medium text-ink-800">Dr. T. Moyo</p>
                   <p className="truncate text-[0.7rem] text-ink-400">t.moyo@researchmind.ai</p>
                 </div>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setUserMenuOpen(false)
+                    navigate('/settings')
+                    onCloseMobile()
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
+                >
+                  <SettingsIcon className="size-4 shrink-0 text-ink-400" />
+                  Settings
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setUserMenuOpen(false)
+                    navigate('/subscription')
+                    onCloseMobile()
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
+                >
+                  <CardIcon className="size-4 shrink-0 text-ink-400" />
+                  Subscription
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setUserMenuOpen(false)
+                    comingSoon('The help centre')
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
+                >
+                  <HelpIcon className="size-4 shrink-0 text-ink-400" />
+                  Help
+                </button>
+                <div className="my-1 border-t border-ink-100" />
                 <button
                   type="button"
                   role="menuitem"

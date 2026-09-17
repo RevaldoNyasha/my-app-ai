@@ -5,12 +5,9 @@ import {
   ChatIcon,
   DatabaseIcon,
   FolderIcon,
-  PanelIcon,
   ReportIcon,
 } from '@/components/ui/icons'
 import { Badge, Dot } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
-import { ResearchContextPanel } from '@/components/research/ResearchContextPanel'
 import { EvidencePanel } from '@/components/research/EvidencePanel'
 import { getProject } from '@/services/researchService'
 import { type ProjectOutletContext } from '@/hooks/useProjectContext'
@@ -28,9 +25,6 @@ export function ProjectLayout() {
   const { projectId } = useParams()
   const [project, setProject] = useState<ResearchProject | undefined>()
   const [isLoading, setIsLoading] = useState(true)
-  const [contextOpen, setContextOpen] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches,
-  )
   const [evidence, setEvidence] = useState<Evidence | null>(null)
 
   useEffect(() => {
@@ -79,8 +73,6 @@ export function ProjectLayout() {
   const context: ProjectOutletContext = {
     project,
     openEvidence: handleSelectEvidence,
-    contextOpen,
-    setContextOpen,
   }
 
   const meta = `${project.documentCount} documents · ${project.interviewCount} interviews · ${project.focusGroupCount} focus groups`
@@ -104,19 +96,8 @@ export function ProjectLayout() {
                   </Badge>
                 )}
               </div>
-              <p className="mt-1 text-[0.76rem] text-ink-500">{meta}</p>
+<p className="mt-1 text-[0.76rem] text-ink-500">{meta}</p>
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setContextOpen(!contextOpen)}
-              aria-pressed={contextOpen}
-              className="shrink-0"
-            >
-              <PanelIcon className="size-4" />
-              {contextOpen ? 'Hide context' : 'Research context'}
-            </Button>
           </div>
 
           <nav className="-mb-px mt-3 flex gap-1 overflow-x-auto">
@@ -145,12 +126,6 @@ export function ProjectLayout() {
           <Outlet context={context} />
         </div>
       </div>
-
-      <ResearchContextPanel
-        project={project}
-        open={contextOpen}
-        onClose={() => setContextOpen(false)}
-      />
 
       <EvidencePanel
         evidence={evidence}
