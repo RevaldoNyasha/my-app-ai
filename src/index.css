@@ -1,0 +1,262 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+
+  --color-canvas: #f8f8f7;
+  --color-surface: #ffffff;
+  --color-ink-50: #f6f7f7;
+  --color-ink-100: #ececeb;
+  --color-ink-200: #dededc;
+  --color-ink-300: #c2c2bf;
+  --color-ink-400: #9a9a96;
+  --color-ink-500: #73736f;
+  --color-ink-600: #55554f;
+  --color-ink-700: #3d3d38;
+  --color-ink-800: #262623;
+  --color-ink-900: #171715;
+
+  --color-brand-50: #eef6f4;
+  --color-brand-100: #d6ebe6;
+  --color-brand-200: #aed8cf;
+  --color-brand-300: #7dbeb2;
+  --color-brand-400: #4d9e91;
+  --color-brand-500: #2f8074;
+  --color-brand-600: #22675e;
+  --color-brand-700: #1c524c;
+  --color-brand-800: #18413d;
+  --color-brand-900: #143634;
+
+  --shadow-panel: 0 1px 2px rgba(23, 23, 21, 0.04), 0 8px 24px -12px rgba(23, 23, 21, 0.12);
+  --shadow-raised: 0 1px 2px rgba(23, 23, 21, 0.05), 0 12px 32px -16px rgba(23, 23, 21, 0.18);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --color-canvas: #0e0f10;
+  --color-surface: #16181a;
+  --color-ink-50: #1b1d1f;
+  --color-ink-100: #232628;
+  --color-ink-200: #2f3336;
+  --color-ink-300: #45494c;
+  --color-ink-400: #6b7073;
+  --color-ink-500: #8b9093;
+  --color-ink-600: #a8adb0;
+  --color-ink-700: #c6cacc;
+  --color-ink-800: #e2e5e6;
+  --color-ink-900: #f5f6f6;
+
+  --color-brand-50: #0f1c1a;
+  --color-brand-100: #152a26;
+  --color-brand-200: #1c3c36;
+  --color-brand-300: #2a6259;
+  --color-brand-400: #2f7268;
+  --color-brand-500: #358a7d;
+  --color-brand-600: #2f8074;
+  --color-brand-700: #3d9c8d;
+  --color-brand-800: #4bb3a3;
+  --color-brand-900: #7dbeb2;
+
+  --shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -14px rgba(0, 0, 0, 0.7);
+  --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.45), 0 16px 40px -18px rgba(0, 0, 0, 0.8);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    color-scheme: light;
+    background-color: var(--color-canvas);
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-canvas text-ink-800 font-sans antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ink-300) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-ink-200);
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-ink-300);
+    background-clip: content-box;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.85);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Landing page — background atmosphere
+--------------------------------------------------------------------------- */
+
+.landing-ink {
+  background-color: #050908;
+}
+
+.landing-grid {
+  background-image:
+    linear-gradient(to right, rgba(52, 211, 153, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(52, 211, 153, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 30%, transparent 100%);
+}
+
+.landing-glow {
+  background: radial-gradient(closest-side, rgba(16, 185, 129, 0.16), transparent 72%);
+}
+
+.landing-glow-strong {
+  background: radial-gradient(closest-side, rgba(16, 185, 129, 0.3), transparent 72%);
+}
+
+/* ---------------------------------------------------------------------------
+   Landing page — keyframes
+--------------------------------------------------------------------------- */
+
+@keyframes flow-dash {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(140%);
+    opacity: 0;
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-drift {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer-line {
+  0% {
+    background-position: -120% 0;
+  }
+  100% {
+    background-position: 120% 0;
+  }
+}
+
+.animate-flow-dash {
+  animation: flow-dash 0.9s linear infinite;
+}
+
+.animate-bar-grow {
+  animation: bar-grow 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: bottom;
+}
+
+.animate-scan-line {
+  animation: scan-line 2.4s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.animate-fade-drift {
+  animation: fade-drift 0.6s ease-out both;
+}
+
+/* ---------------------------------------------------------------------------
+   Reduced motion — keep the page functional and static
+--------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

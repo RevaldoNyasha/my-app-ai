@@ -1,0 +1,167 @@
+import type { Conversation, DashboardStats, Participant, ResearchProject } from '@/types/research'
+
+export const projects: ResearchProject[] = [
+  {
+    id: 'healthcare-access',
+    name: 'Healthcare Access Study',
+    description:
+      'Understanding the barriers that affect access to primary healthcare among young people in urban and rural communities.',
+    documentCount: 24,
+    participantCount: 41,
+    interviewCount: 18,
+    focusGroupCount: 3,
+    themes: [
+      'Financial barriers',
+      'Geographic access',
+      'Healthcare quality',
+      'Cultural beliefs',
+      'Waiting times',
+    ],
+    codes: [
+      'Transport costs',
+      'Consultation fees',
+      'Medication costs',
+      'Distance to clinic',
+      'Staff availability',
+    ],
+    status: 'active',
+    createdAt: '2026-05-12T08:00:00.000Z',
+    updatedAt: '2026-09-17T09:20:00.000Z',
+  },
+  {
+    id: 'youth-mental-health',
+    name: 'Youth Mental Health Study',
+    description:
+      'Exploring how young people describe mental health, help-seeking and the support available in their communities.',
+    documentCount: 16,
+    participantCount: 28,
+    interviewCount: 12,
+    focusGroupCount: 2,
+    themes: ['Stigma', 'Peer support', 'Service availability', 'Family dynamics'],
+    codes: ['Self-stigma', 'Trusted adults', 'Counselling access', 'Community attitudes'],
+    status: 'active',
+    createdAt: '2026-06-02T08:00:00.000Z',
+    updatedAt: '2026-09-15T14:05:00.000Z',
+  },
+  {
+    id: 'rural-education',
+    name: 'Rural Education Research',
+    description:
+      'A multi-site study on schooling experiences, learner retention and community expectations in rural districts.',
+    documentCount: 42,
+    participantCount: 63,
+    interviewCount: 31,
+    focusGroupCount: 5,
+    themes: ['School resourcing', 'Teacher retention', 'Household economics', 'Learner mobility'],
+    codes: ['Textbook shortages', 'Travel distance', 'Household income', 'Teacher transfers'],
+    status: 'active',
+    createdAt: '2026-03-21T08:00:00.000Z',
+    updatedAt: '2026-09-11T11:40:00.000Z',
+  },
+  {
+    id: 'maternal-health',
+    name: 'Maternal Healthcare Study',
+    description:
+      'Experiences of antenatal and postnatal care among first-time mothers across three districts.',
+    documentCount: 19,
+    participantCount: 22,
+    interviewCount: 14,
+    focusGroupCount: 2,
+    themes: ['Antenatal care', 'Traditional practice', 'Transport', 'Provider communication'],
+    codes: ['Clinic bookings', 'Birth preparedness', 'Referral delays', 'Respectful care'],
+    status: 'active',
+    createdAt: '2026-04-08T08:00:00.000Z',
+    updatedAt: '2026-09-09T16:30:00.000Z',
+  },
+  {
+    id: 'community-development',
+    name: 'Community Development Research',
+    description:
+      'Participatory research on local development priorities, livelihoods and community decision-making.',
+    documentCount: 42,
+    participantCount: 88,
+    interviewCount: 31,
+    focusGroupCount: 5,
+    themes: ['Livelihoods', 'Local governance', 'Infrastructure', 'Youth employment'],
+    codes: ['Market access', 'Water points', 'Committee participation', 'Skills training'],
+    status: 'active',
+    createdAt: '2026-02-14T08:00:00.000Z',
+    updatedAt: '2026-09-04T10:15:00.000Z',
+  },
+  {
+    id: 'water-sanitation',
+    name: 'Water & Sanitation Access',
+    description:
+      'Household experiences of water reliability, sanitation facilities and seasonal access constraints.',
+    documentCount: 27,
+    participantCount: 57,
+    interviewCount: 20,
+    focusGroupCount: 4,
+    themes: ['Water reliability', 'Sanitation facilities', 'Seasonal access', 'Household burden'],
+    codes: ['Borehole queues', 'Water treatment', 'Shared facilities', 'Distance to source'],
+    status: 'archived',
+    createdAt: '2025-11-03T08:00:00.000Z',
+    updatedAt: '2026-07-28T09:00:00.000Z',
+  },
+]
+
+export const dashboardStats: DashboardStats = {
+  projects: 12,
+  documents: 184,
+  themes: 96,
+  excerpts: 438,
+}
+
+export const conversations: Conversation[] = [
+  {
+    id: 'conv-healthcare-barriers',
+    projectId: 'healthcare-access',
+    title: 'Healthcare Barriers Analysis',
+    preview: 'What are the major barriers affecting access to healthcare?',
+    updatedAt: '2026-09-17T09:20:00.000Z',
+    messageCount: 6,
+  },
+  {
+    id: 'conv-youth-healthcare',
+    projectId: 'healthcare-access',
+    title: 'Youth Healthcare Study',
+    preview: 'How do young people describe their first clinic visit?',
+    updatedAt: '2026-09-16T15:42:00.000Z',
+    messageCount: 4,
+  },
+  {
+    id: 'conv-community-health',
+    projectId: 'community-development',
+    title: 'Community Health Interviews',
+    preview: 'Summarise the community health priorities raised.',
+    updatedAt: '2026-09-15T11:08:00.000Z',
+    messageCount: 8,
+  },
+  {
+    id: 'conv-maternal-health',
+    projectId: 'maternal-health',
+    title: 'Maternal Healthcare Study',
+    preview: 'Compare antenatal experiences across districts.',
+    updatedAt: '2026-09-12T08:26:00.000Z',
+    messageCount: 5,
+  },
+  {
+    id: 'conv-rural-access',
+    projectId: 'rural-education',
+    title: 'Rural Healthcare Access',
+    preview: 'Show evidence linking transport costs to missed appointments.',
+    updatedAt: '2026-09-10T17:55:00.000Z',
+    messageCount: 3,
+  },
+]
+
+export const participants: Participant[] = [
+  { id: 'p01', label: 'P01', projectId: 'healthcare-access', age: 19, location: 'Urban', interviewCount: 1 },
+  { id: 'p02', label: 'P02', projectId: 'healthcare-access', age: 22, location: 'Urban', interviewCount: 1 },
+  { id: 'p03', label: 'P03', projectId: 'healthcare-access', age: 24, location: 'Rural', interviewCount: 1 },
+  { id: 'p04', label: 'P04', projectId: 'healthcare-access', age: 20, location: 'Rural', interviewCount: 1 },
+  { id: 'p05', label: 'P05', projectId: 'healthcare-access', age: 21, location: 'Peri-urban', interviewCount: 1 },
+  { id: 'p06', label: 'P06', projectId: 'healthcare-access', age: 23, location: 'Rural', interviewCount: 1 },
+  { id: 'p07', label: 'P07', projectId: 'healthcare-access', age: 26, location: 'Rural', interviewCount: 1 },
+  { id: 'p08', label: 'P08', projectId: 'healthcare-access', age: 19, location: 'Urban', interviewCount: 1 },
+]
