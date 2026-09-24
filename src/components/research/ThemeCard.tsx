@@ -44,14 +44,8 @@ export function ThemeCard({ theme }: { theme: ResearchTheme }) {
         </div>
       </dl>
 
-      <div className="mt-4">
-        <div className="flex items-center justify-between text-[0.7rem] text-ink-500">
-          <span>Theme confidence</span>
-          <span className="font-medium tabular-nums text-ink-700">
-            {Math.round(theme.confidence * 100)}%
-          </span>
-        </div>
-        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink-100">
+      <div className="mt-4" title={`Theme confidence: ${Math.round(theme.confidence * 100)}%`}>
+        <div className="h-1.5 overflow-hidden rounded-full bg-ink-100">
           <div
             className="h-full rounded-full bg-brand-500 transition-[width] duration-300"
             style={{ width: `${Math.round(theme.confidence * 100)}%` }}

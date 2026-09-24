@@ -38,13 +38,13 @@ export function LandingNavbar() {
 
         <div className="ml-auto hidden items-center gap-2.5 lg:flex">
           <Link
-            to="/dashboard"
+            to="/projects/healthcare-access/chat"
             className="rounded-lg px-3.5 py-2 text-[0.9rem] font-medium text-slate-200 transition-colors hover:text-white"
           >
             Sign in
           </Link>
           <Link
-            to="/dashboard"
+            to="/projects/healthcare-access/chat"
             className="group inline-flex h-9.5 items-center gap-2 rounded-xl bg-emerald-400 px-4 text-[0.9rem] font-semibold text-[#05120c] shadow-[0_0_22px_-8px_rgba(52,211,153,0.7)] transition-all duration-200 hover:-translate-y-px hover:bg-emerald-300"
           >
             Get started
@@ -67,14 +67,14 @@ export function LandingNavbar() {
         <div className="border-t border-white/[0.06] bg-[#050908]/95 backdrop-blur-xl lg:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col px-5 py-4 sm:px-8" aria-label="Account">
             <Link
-              to="/dashboard"
+              to="/projects/healthcare-access/chat"
               onClick={() => setOpen(false)}
               className="rounded-xl border border-white/[0.1] px-4 py-2.5 text-center text-[0.92rem] font-medium text-slate-100 transition-colors hover:bg-white/[0.05]"
             >
               Sign in
             </Link>
             <Link
-              to="/dashboard"
+              to="/projects/healthcare-access/chat"
               onClick={() => setOpen(false)}
               className="mt-2.5 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-400 px-4 py-2.5 text-[0.92rem] font-semibold text-[#05120c]"
             >

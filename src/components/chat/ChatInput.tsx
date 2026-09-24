@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { MicrophoneIcon, PaperclipIcon, SendIcon } from '@/components/ui/icons'
+import { MicrophoneIcon, SendIcon } from '@/components/ui/icons'
 import { useToast } from '@/hooks/useToast'
 
 interface ChatInputProps {
@@ -40,16 +40,6 @@ export function ChatInput({ value, onChange, onSend, isSending = false }: ChatIn
           isFocused ? 'border-brand-400' : 'border-ink-200',
         ].join(' ')}
       >
-        <button
-          type="button"
-          onClick={() => comingSoon('Attaching research data')}
-          aria-label="Attach research data"
-          title="Attach research data (PDF, DOCX, CSV, MP3, WAV, MP4)"
-          className="mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-800"
-        >
-          <PaperclipIcon className="size-4.5" />
-        </button>
-
         <textarea
           ref={textareaRef}
           value={value}

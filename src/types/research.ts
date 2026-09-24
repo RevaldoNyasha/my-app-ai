@@ -132,10 +132,3 @@ export interface ResearchReport {
   sections: string[]
   status: 'draft' | 'final'
 }
-
-export interface DashboardStats {
-  projects: number
-  documents: number
-  themes: number
-  excerpts: number
-}

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, type DragEvent } from 'react'
 import { PageContainer, PageHeading } from '@/components/layout/PageContainer'
 import { DataTable } from '@/components/research/DataTable'
-import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { FilterIcon, SearchIcon, UploadIcon } from '@/components/ui/icons'
+import { useToast } from '@/hooks/useToast'
 import { listDocuments, listProjects, uploadDocuments } from '@/services/researchService'
 import type { ResearchDocument, ResearchProject } from '@/types/research'
 
@@ -16,15 +16,18 @@ interface ResearchDataPageProps {
 }
 
 export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
+  const { showToast } = useToast()
   const [documents, setDocuments] = useState<ResearchDocument[]>([])
   const [projects, setProjects] = useState<ResearchProject[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<(typeof TYPE_FILTERS)[number]>('All')
+  const [extensionFilter, setExtensionFilter] = useState<string | null>(null)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedNames, setUploadedNames] = useState<string[]>([])
+  const [documentToDelete, setDocumentToDelete] = useState<ResearchDocument | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -56,9 +59,10 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
         document.name.toLowerCase().includes(normalized) ||
         document.type.toLowerCase().includes(normalized)
       const matchesType = typeFilter === 'All' || document.type === typeFilter
-      return matchesQuery && matchesType
+      const matchesExtension = !extensionFilter || document.extension === extensionFilter
+      return matchesQuery && matchesType && matchesExtension
     })
-  }, [documents, query, typeFilter])
+  }, [documents, query, typeFilter, extensionFilter])
 
   const handleFiles = async (files: File[]) => {
     if (files.length === 0) return
@@ -79,6 +83,26 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
     event.preventDefault()
     setIsDragging(false)
     void handleFiles(Array.from(event.dataTransfer.files))
+  }
+
+  const confirmDelete = () => {
+    if (!documentToDelete) return
+    setDocuments((previous) => previous.filter((document) => document.id !== documentToDelete.id))
+    setDocumentToDelete(null)
+    showToast({ title: 'File deleted', description: `${documentToDelete.name} was removed.` })
+  }
+
+  const handleRetry = (document: ResearchDocument) => {
+    setDocuments((previous) =>
+      previous.map((item) => (item.id === document.id ? { ...item, status: 'processing' } : item)),
+    )
+    showToast({ title: 'Retrying processing', description: `${document.name} is being processed again.` })
+    window.setTimeout(() => {
+      setDocuments((previous) =>
+        previous.map((item) => (item.id === document.id ? { ...item, status: 'processed' } : item)),
+      )
+      showToast({ title: 'Processing complete', description: `${document.name} was processed successfully.` })
+    }, 2200)
   }
 
   return (
@@ -131,11 +155,24 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
         <p className="text-[0.78rem] text-ink-500">
           {isLoading ? 'Loading…' : `${filtered.length} of ${documents.length} files`}
         </p>
-        <div className="hidden items-center gap-1.5 sm:flex">
+        <div className="flex items-center gap-1.5">
           {ACCEPTED_EXTENSIONS.map((extension) => (
-            <Badge key={extension} tone="outline">
+            <button
+              key={extension}
+              type="button"
+              onClick={() =>
+                setExtensionFilter((current) => (current === extension ? null : extension))
+              }
+              aria-pressed={extensionFilter === extension}
+              className={[
+                'rounded-full border px-2.5 py-0.5 text-[0.72rem] font-medium tracking-wide transition-colors',
+                extensionFilter === extension
+                  ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-400/10 dark:text-brand-300'
+                  : 'border-ink-200 text-ink-600 hover:border-brand-300 hover:bg-brand-50/40 hover:text-brand-700',
+              ].join(' ')}
+            >
               {extension}
-            </Badge>
+            </button>
           ))}
         </div>
       </div>
@@ -144,7 +181,33 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
         documents={filtered}
         showProjectColumn={!projectId}
         projectNames={projectNames}
+        onDelete={(document) => setDocumentToDelete(document)}
+        onRetry={handleRetry}
       />
+
+      <Modal
+        open={documentToDelete !== null}
+        onClose={() => setDocumentToDelete(null)}
+        title="Delete file?"
+        description={
+          documentToDelete
+            ? `${documentToDelete.name} will be permanently removed from your research data. This cannot be undone.`
+            : undefined
+        }
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setDocumentToDelete(null)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmDelete}>Delete</Button>
+          </>
+        }
+      >
+        <p className="text-[0.85rem] leading-6 text-ink-600">
+          Any analysis or evidence that references this file will keep working with the data that
+          remains in your project.
+        </p>
+      </Modal>
 
       <Modal
         open={isUploadOpen}

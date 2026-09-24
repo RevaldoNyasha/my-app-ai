@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Routes, useParams } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ProjectLayout } from '@/components/layout/ProjectLayout'
-import { Dashboard } from '@/pages/Dashboard'
 import { LandingPage } from '@/pages/LandingPage'
 import { Projects } from '@/pages/Projects'
 import { ProjectOverview } from '@/pages/ProjectOverview'
@@ -34,7 +33,6 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route element={<AppLayout />}>
-          <Route path="dashboard" element={<Dashboard />} />
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:projectId" element={<ProjectLayout />}>
             <Route index element={<ProjectOverview />} />
@@ -43,9 +41,6 @@ export default function App() {
             <Route path="analysis" element={<ProjectAnalysisRoute />} />
             <Route path="reports" element={<ProjectReportsRoute />} />
           </Route>
-          <Route path="data" element={<ResearchDataPage />} />
-          <Route path="analysis" element={<AnalysisPage />} />
-          <Route path="reports" element={<ReportsPage />} />
           <Route path="settings" element={<Settings />} />
           <Route path="subscription" element={<SubscriptionPage />} />
           <Route path="*" element={<NotFound />} />

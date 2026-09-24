@@ -1,4 +1,4 @@
-import type { Conversation, DashboardStats, Participant, ResearchProject } from '@/types/research'
+import type { Conversation, Participant, ResearchProject } from '@/types/research'
 
 export const projects: ResearchProject[] = [
   {
@@ -104,13 +104,6 @@ export const projects: ResearchProject[] = [
     updatedAt: '2026-07-28T09:00:00.000Z',
   },
 ]
-
-export const dashboardStats: DashboardStats = {
-  projects: 12,
-  documents: 184,
-  themes: 96,
-  excerpts: 438,
-}
 
 export const conversations: Conversation[] = [
   {

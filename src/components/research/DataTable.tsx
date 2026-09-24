@@ -1,5 +1,16 @@
+import { useRef, useState } from 'react'
 import { Badge, Dot } from '@/components/ui/Badge'
-import { ClockIcon, ExclamationIcon, SourceIcon } from '@/components/ui/icons'
+import {
+  CaptionsIcon,
+  ClockIcon,
+  DotsIcon,
+  ExclamationIcon,
+  ReportIcon,
+  RetryIcon,
+  SourceIcon,
+  TrashIcon,
+} from '@/components/ui/icons'
+import { useToast } from '@/hooks/useToast'
 import { formatRelativeTime } from '@/lib/format'
 import type { DocumentStatus, ResearchDocument } from '@/types/research'
 
@@ -44,16 +55,157 @@ function TypeGlyph({ extension }: { extension: string }) {
   )
 }
 
+function RowActions({
+  document,
+  onDelete,
+  onRetry,
+}: {
+  document: ResearchDocument
+  onDelete?: (document: ResearchDocument) => void
+  onRetry?: (document: ResearchDocument) => void
+}) {
+  const { comingSoon, showToast } = useToast()
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const [open, setOpen] = useState(false)
+  const [menuPos, setMenuPos] = useState<{ top?: number; bottom?: number; right: number }>()
+  const isAudio = document.kind === 'audio'
+  const isFailed = document.status === 'failed'
+
+  const close = () => setOpen(false)
+
+  const toggleMenu = () => {
+    if (!buttonRef.current) return
+    const rect = buttonRef.current.getBoundingClientRect()
+    const menuHeight = isFailed ? 44 : 148
+    const gap = 6
+    const opensUp = rect.bottom + gap + menuHeight > window.innerHeight
+    setMenuPos(
+      opensUp
+        ? { bottom: window.innerHeight - rect.top + gap, right: window.innerWidth - rect.right }
+        : { top: rect.bottom + gap, right: window.innerWidth - rect.right },
+    )
+    setOpen((value) => !value)
+  }
+
+  const handleTranscript = () => {
+    close()
+    comingSoon('Generating a transcript')
+  }
+
+  const handleRetry = () => {
+    close()
+    if (onRetry) {
+      onRetry(document)
+    } else {
+      showToast({ title: 'Retry is unavailable here' })
+    }
+  }
+
+  const handleDelete = () => {
+    close()
+    if (onDelete) {
+      onDelete(document)
+    } else {
+      showToast({ title: 'Delete is unavailable here' })
+    }
+  }
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={toggleMenu}
+        aria-label={`Actions for ${document.name}`}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title="Actions"
+        className="flex size-8 items-center justify-center rounded-lg text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-800"
+      >
+        <DotsIcon className="size-4.5" />
+      </button>
+
+      {open && menuPos ? (
+        <>
+          <div className="fixed inset-0 z-40" onClick={close} aria-hidden="true" />
+          <div
+            role="menu"
+            aria-label={`Actions for ${document.name}`}
+            style={{
+              top: menuPos.top,
+              bottom: menuPos.bottom,
+              right: menuPos.right,
+            }}
+            className="fixed z-50 w-48 overflow-hidden rounded-xl border border-ink-200 bg-surface py-1 shadow-raised"
+          >
+            {isFailed ? (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={handleRetry}
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
+              >
+                <RetryIcon className="size-4 shrink-0 text-ink-400" />
+                Retry
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={!isAudio}
+                  onClick={handleTranscript}
+                  title={isAudio ? 'Generate a transcript' : 'Transcripts are only available for audio files'}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900 disabled:cursor-not-allowed disabled:text-ink-300 disabled:hover:bg-transparent disabled:hover:text-ink-300"
+                >
+                  <CaptionsIcon className="size-4 shrink-0 text-ink-400" />
+                  Transcript
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    close()
+                    comingSoon('Generating a report')
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
+                >
+                  <ReportIcon className="size-4 shrink-0 text-ink-400" />
+                  Report
+                </button>
+                <div className="my-1 border-t border-ink-100" />
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={handleDelete}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[0.82rem] font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                >
+                  <TrashIcon className="size-4 shrink-0 text-red-500" />
+                  Delete
+                </button>
+              </>
+            )}
+          </div>
+        </>
+      ) : null}
+    </>
+  )
+}
+
 interface DataTableProps {
   documents: ResearchDocument[]
   showProjectColumn?: boolean
   projectNames?: Record<string, string>
+  onDelete?: (document: ResearchDocument) => void
+  onRetry?: (document: ResearchDocument) => void
 }
 
 export function DataTable({
   documents,
   showProjectColumn = false,
   projectNames = {},
+  onDelete,
+  onRetry,
 }: DataTableProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-200 bg-surface">
@@ -80,6 +232,9 @@ export function DataTable({
               </th>
               <th className="px-4 py-3 text-right text-[0.7rem] font-semibold uppercase tracking-[0.07em] text-ink-500">
                 Updated
+              </th>
+              <th className="w-12 px-2 py-3 text-right text-[0.7rem] font-semibold uppercase tracking-[0.07em] text-ink-500">
+                <span className="sr-only">Actions</span>
               </th>
             </tr>
           </thead>
@@ -123,6 +278,9 @@ export function DataTable({
                     <ClockIcon className="size-3.5 text-ink-300" />
                     {formatRelativeTime(document.updatedAt)}
                   </span>
+                </td>
+                <td className="px-2 py-3 text-right">
+                  <RowActions document={document} onDelete={onDelete} onRetry={onRetry} />
                 </td>
               </tr>
             ))}

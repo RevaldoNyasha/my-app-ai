@@ -14,10 +14,10 @@ export function NotFound() {
           The page you are looking for does not exist in this prototype.
         </p>
         <Link
-          to="/dashboard"
+          to="/projects/healthcare-access/chat"
           className="mt-5 inline-flex h-10 items-center rounded-xl bg-brand-600 px-4 text-[0.84rem] font-medium text-white transition-colors hover:bg-brand-700"
         >
-          Back to dashboard
+          Open assistant
         </Link>
       </div>
     </PageContainer>

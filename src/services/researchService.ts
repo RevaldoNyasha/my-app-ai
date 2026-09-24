@@ -1,12 +1,11 @@
 import { documents } from '@/data/mockDocuments'
 import { themeRelationships, themes } from '@/data/mockAnalysis'
 import { mockResponses, seededMessages, type MockResponse } from '@/data/mockMessages'
-import { conversations, dashboardStats, participants, projects } from '@/data/mockProjects'
+import { conversations, participants, projects } from '@/data/mockProjects'
 import { reports } from '@/data/mockReports'
 import type {
   ChatMessage,
   Conversation,
-  DashboardStats,
   Participant,
   ResearchDocument,
   ResearchProject,
@@ -36,7 +35,7 @@ export async function listProjects(): Promise<ResearchProject[]> {
   return clone(projects)
 }
 
-export async function getProject(projectId: string): Promise<ResearchProject | undefined> {
+export async function getProject(projectId?: string): Promise<ResearchProject | undefined> {
   await simulateLatency(160)
   return clone(projects.find((project) => project.id === projectId))
 }
@@ -55,9 +54,16 @@ export async function listThemes(projectId?: string): Promise<ResearchTheme[]> {
   return clone(result)
 }
 
-export async function listThemeRelationships(): Promise<ThemeRelationship[]> {
+export async function listThemeRelationships(projectId?: string): Promise<ThemeRelationship[]> {
   await simulateLatency(160)
-  return clone(themeRelationships)
+  const result = projectId
+    ? themeRelationships.filter((relationship) => {
+        const source = themes.find((theme) => theme.id === relationship.sourceThemeId)
+        const target = themes.find((theme) => theme.id === relationship.targetThemeId)
+        return source?.projectId === projectId && target?.projectId === projectId
+      })
+    : themeRelationships
+  return clone(result)
 }
 
 export async function listReports(projectId?: string): Promise<ResearchReport[]> {
@@ -87,11 +93,6 @@ export async function listParticipants(projectId?: string): Promise<Participant[
 export async function getMessages(projectId: string): Promise<ChatMessage[]> {
   await simulateLatency(240)
   return clone(seededMessages.filter((message) => message.projectId === projectId))
-}
-
-export async function getDashboardStats(): Promise<DashboardStats> {
-  await simulateLatency(160)
-  return clone(dashboardStats)
 }
 
 /** Matches a question against the mock response catalogue. */

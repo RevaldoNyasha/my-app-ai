@@ -1,17 +1,13 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
-  AnalysisIcon,
   CardIcon,
   ChatIcon,
   CloseIcon,
-  DatabaseIcon,
   FolderIcon,
   HelpIcon,
-  HomeIcon,
   LogOutIcon,
   PlusIcon,
-  ReportIcon,
   SettingsIcon,
   SparkleIcon,
 } from '@/components/ui/icons'
@@ -21,11 +17,7 @@ import type { Conversation } from '@/types/research'
 import { formatRelativeTime, initials } from '@/lib/format'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: HomeIcon, end: true },
   { to: '/projects', label: 'Research Projects', icon: FolderIcon, end: false },
-  { to: '/data', label: 'Research Data', icon: DatabaseIcon, end: false },
-  { to: '/analysis', label: 'Analysis', icon: AnalysisIcon, end: false },
-  { to: '/reports', label: 'Reports', icon: ReportIcon, end: false },
 ] as const
 
 interface SidebarProps {

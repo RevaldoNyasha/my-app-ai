@@ -289,3 +289,34 @@ export const LogOutIcon = (props: IconProps) => (
     <path d="M19 12H10" />
   </Icon>
 )
+
+export const DotsIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+    <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none" />
+  </Icon>
+)
+
+export const TrashIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M3.5 6.5h17" />
+    <path d="M8.5 6.5V5a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1.5" />
+    <path d="M6 6.5 6.8 19a1.5 1.5 0 0 0 1.5 1.4h7.4a1.5 1.5 0 0 0 1.5-1.4L18 6.5" />
+    <path d="M10 10.5v6.5M14 10.5v6.5" />
+  </Icon>
+)
+
+export const CaptionsIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+    <path d="M7 9.5h10M7 13h7M7 16.5h4" />
+  </Icon>
+)
+
+export const RetryIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1" />
+    <path d="M20.5 3.5V8H16" />
+  </Icon>
+)

@@ -12,6 +12,11 @@ const HEIGHT = 380
 const CENTER = { x: WIDTH / 2, y: HEIGHT / 2 }
 const RADIUS = 128
 
+function hubLines(label: string): [string, string] {
+  const words = label.split(' ').filter(Boolean)
+  return [words[0] ?? 'Research', words.slice(1).join(' ') || 'themes']
+}
+
 export function ThemeRelationshipMap({
   themes,
   relationships,
@@ -31,6 +36,7 @@ export function ThemeRelationshipMap({
   )
 
   const nodeById = new Map(nodes.map((node) => [node.theme.id, node]))
+  const [hubLine1, hubLine2] = hubLines(hubLabel)
 
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-200 bg-surface p-2">
@@ -80,7 +86,7 @@ export function ThemeRelationshipMap({
           textAnchor="middle"
           className="fill-white text-[11px] font-semibold"
         >
-          Healthcare
+          {hubLine1}
         </text>
         <text
           x={CENTER.x}
@@ -88,7 +94,7 @@ export function ThemeRelationshipMap({
           textAnchor="middle"
           className="fill-white/80 text-[11px]"
         >
-          {hubLabel.split(' ').slice(-1)[0]}
+          {hubLine2}
         </text>
 
         {nodes.map((node) => (
