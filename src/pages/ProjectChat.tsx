@@ -2,11 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ChatWindow } from '@/components/chat/ChatWindow'
 import { useProjectContext } from '@/hooks/useProjectContext'
+import { useAuth } from '@/auth/AuthContext'
 import { getMessages, sendChatMessage } from '@/services/researchService'
 import type { ChatMessage } from '@/types/research'
 
 export function ProjectChat() {
   const { project, openEvidence } = useProjectContext()
+  const { isAuthenticated, usageCount, recordUsage, openLogin } = useAuth()
   const [searchParams] = useSearchParams()
   const conversationId = searchParams.get('conversation')
   const newChatToken = searchParams.get('new')
@@ -34,12 +36,18 @@ export function ProjectChat() {
       setMessages(result)
       setIsLoading(false)
     })
-  }, [project.id, conversationId, newChatToken])
+  }, [project.id, conversationId, newChatToken, isAuthenticated])
 
   const handleSend = useCallback(
     async (question?: string) => {
       const content = (question ?? input).trim()
       if (!content || isSending) return
+
+      if (!isAuthenticated && usageCount >= 1) {
+        openLogin()
+        return
+      }
+      recordUsage()
 
       const userMessage: ChatMessage = {
         id: `user-${Date.now()}`,
@@ -60,7 +68,7 @@ export function ProjectChat() {
         setIsSending(false)
       }
     },
-    [input, isSending, project.id],
+    [input, isSending, project.id, isAuthenticated, usageCount, recordUsage, openLogin],
   )
 
   return (

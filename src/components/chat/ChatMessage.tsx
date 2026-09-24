@@ -1,5 +1,4 @@
 import { Markdown } from '@/components/ui/Markdown'
-import { EvidenceCard } from '@/components/chat/EvidenceCard'
 import { SparkleIcon } from '@/components/ui/icons'
 import { formatClockTime } from '@/lib/format'
 import type { ChatMessage as ChatMessageType, Evidence } from '@/types/research'
@@ -25,9 +24,7 @@ export function ChatMessage({ message, onSelectEvidence, projectName }: ChatMess
 
   return (
     <div className="flex gap-3.5" style={{ animation: 'rise 220ms ease-out' }}>
-      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
-        <SparkleIcon className="size-4" />
-      </div>
+      <SparkleIcon className="mt-0.5 size-4 shrink-0 text-ink-800" />
 
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-baseline gap-2">
@@ -44,28 +41,19 @@ export function ChatMessage({ message, onSelectEvidence, projectName }: ChatMess
           <Markdown content={message.content} />
 
           {message.evidence && message.evidence.length > 0 ? (
-            <div className="mt-5 border-t border-ink-100 pt-4">
-              <div className="mb-2.5 flex items-center gap-2">
-                <span className="text-[0.72rem] font-semibold uppercase tracking-[0.09em] text-ink-500">
-                  Evidence
-                </span>
-                <span className="text-[0.72rem] font-semibold tabular-nums text-ink-500">
-                  {message.evidence.length}
-                </span>
-                <span className="text-[0.7rem] text-ink-400">
-                  Click a source to inspect the original excerpt
-                </span>
-              </div>
-              <div className="grid gap-2.5 sm:grid-cols-2">
-                {message.evidence.map((evidence, index) => (
-                  <EvidenceCard
-                    key={evidence.id}
-                    evidence={evidence}
-                    index={index}
-                    onSelect={onSelectEvidence}
-                  />
-                ))}
-              </div>
+            <div className="mt-3.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 border-t border-ink-100 pt-3">
+              <span className="text-[0.7rem] font-medium text-ink-400">Sources:</span>
+              {message.evidence.map((evidence, index) => (
+                <button
+                  key={evidence.id}
+                  type="button"
+                  onClick={() => onSelectEvidence(evidence)}
+                  className="text-[0.72rem] font-medium text-ink-600 underline decoration-ink-300 underline-offset-2 transition-colors hover:text-ink-900 hover:decoration-ink-600"
+                >
+                  {index > 0 ? ', ' : ''}
+                  {evidence.source}
+                </button>
+              ))}
             </div>
           ) : null}
         </div>

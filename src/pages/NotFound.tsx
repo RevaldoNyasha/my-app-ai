@@ -6,7 +6,7 @@ export function NotFound() {
   return (
     <PageContainer className="flex min-h-[60vh] items-center justify-center">
       <div className="max-w-md text-center">
-        <SparkleIcon className="mx-auto mb-4 block size-6 text-brand-500" />
+        <SparkleIcon className="mx-auto mb-4 block size-6 text-ink-300" />
         <h1 className="font-serif text-2xl font-semibold tracking-tight text-ink-900">
           Page not found
         </h1>
@@ -15,7 +15,7 @@ export function NotFound() {
         </p>
         <Link
           to="/projects/healthcare-access/chat"
-          className="mt-5 inline-flex h-10 items-center rounded-xl bg-brand-600 px-4 text-[0.84rem] font-medium text-white transition-colors hover:bg-brand-700"
+          className="mt-5 inline-flex h-10 items-center rounded-xl bg-ink-100 px-4 text-[0.84rem] font-medium text-ink-800 transition-colors hover:bg-ink-200"
         >
           Open assistant
         </Link>

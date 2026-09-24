@@ -8,8 +8,8 @@ export function LandingLogo({ className = 'size-8' }: { className?: string }) {
     <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#34d399" />
-          <stop offset="1" stopColor="#10b981" />
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="1" stopColor="#d4dadf" />
         </linearGradient>
       </defs>
       <rect width="32" height="32" rx="8.5" fill={`url(#${gradientId})`} />

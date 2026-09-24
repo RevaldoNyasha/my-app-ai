@@ -43,15 +43,12 @@ export function ChatWindow({
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
             <div className="flex items-center gap-2 text-sm text-ink-400">
-              <SparkleIcon className="size-4 animate-pulse text-brand-400" />
+              <SparkleIcon className="size-4 animate-pulse text-ink-300" />
               Loading conversation…
             </div>
           </div>
         ) : isEmpty && !isSending ? (
-          <WelcomeScreen
-            project={project}
-            onSelectPrompt={(prompt) => onSend(prompt)}
-          />
+          <WelcomeScreen onSelectPrompt={(prompt) => onSend(prompt)} />
         ) : (
           <div className="mx-auto w-full max-w-3xl space-y-7 px-4 py-7 sm:px-6">
             {messages.map((message) => (
@@ -65,9 +62,7 @@ export function ChatWindow({
 
             {isSending ? (
               <div className="flex gap-3.5">
-                <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
-                  <SparkleIcon className="size-4" />
-                </div>
+                <SparkleIcon className="mt-0.5 size-4 shrink-0 text-ink-800" />
                 <div className="rounded-2xl rounded-tl-md border border-ink-100 bg-surface px-4 py-3.5 shadow-[0_1px_2px_rgba(23,23,21,0.03)]">
                   <TypingIndicator />
                 </div>

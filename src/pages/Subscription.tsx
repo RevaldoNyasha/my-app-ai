@@ -163,7 +163,7 @@ function PlanCard({
       <ul className="mt-3 flex-1 space-y-2">
         {plan.features.map((feature) => (
           <li key={feature} className="flex items-start gap-2 text-[0.78rem] leading-5 text-ink-600">
-            <CheckIcon className="mt-0.5 size-3.5 shrink-0 text-brand-500" />
+            <CheckIcon className="mt-0.5 size-3.5 shrink-0 text-ink-300" />
             <span>{feature}</span>
           </li>
         ))}
@@ -427,7 +427,7 @@ export function SubscriptionPage() {
 
         <section className="rounded-2xl border border-dashed border-ink-200 bg-surface/60 p-5">
           <p className="flex items-start gap-2 text-[0.8rem] leading-6 text-ink-500">
-            <SparkleIcon className="mt-1 size-3.5 shrink-0 text-brand-500" />
+            <SparkleIcon className="mt-1 size-3.5 shrink-0 text-ink-300" />
             This is a frontend prototype. No payment is collected and plan changes are not applied —
             all billing data shown is mock data held in the browser.
           </p>

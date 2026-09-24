@@ -7,6 +7,7 @@ import { DownloadIcon, EyeIcon, ReportIcon, SparkleIcon } from '@/components/ui/
 import { formatDate } from '@/lib/format'
 import { listReports } from '@/services/researchService'
 import { useToast } from '@/hooks/useToast'
+import { useAuth } from '@/auth/AuthContext'
 import type { ResearchReport } from '@/types/research'
 
 interface ReportsPageProps {
@@ -15,6 +16,7 @@ interface ReportsPageProps {
 
 export function ReportsPage({ projectId }: ReportsPageProps) {
   const { comingSoon } = useToast()
+  const { isAuthenticated } = useAuth()
   const [reports, setReports] = useState<ResearchReport[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -31,7 +33,7 @@ export function ReportsPage({ projectId }: ReportsPageProps) {
     return () => {
       cancelled = true
     }
-  }, [projectId])
+  }, [projectId, isAuthenticated])
 
   return (
     <PageContainer>
@@ -62,7 +64,7 @@ export function ReportsPage({ projectId }: ReportsPageProps) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <ReportIcon className="mt-0.5 size-4 shrink-0 text-brand-600" />
+                  <ReportIcon className="mt-0.5 size-4 shrink-0 text-ink-300" />
                   <div className="min-w-0">
                     <h3 className="font-serif text-[1.02rem] font-semibold leading-snug tracking-tight text-ink-900">
                       {report.title}

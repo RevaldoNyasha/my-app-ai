@@ -7,12 +7,16 @@ import {
   FolderIcon,
   HelpIcon,
   LogOutIcon,
+  PanelIcon,
+  PanelLeftIcon,
   PlusIcon,
   SettingsIcon,
   SparkleIcon,
+  UserIcon,
 } from '@/components/ui/icons'
 import { listConversations } from '@/services/researchService'
 import { useToast } from '@/hooks/useToast'
+import { useAuth } from '@/auth/AuthContext'
 import type { Conversation } from '@/types/research'
 import { formatRelativeTime, initials } from '@/lib/format'
 
@@ -24,17 +28,28 @@ interface SidebarProps {
   collapsed: boolean
   mobileOpen: boolean
   onCloseMobile: () => void
+  onToggleCollapsed: () => void
 }
 
-export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) {
+export function Sidebar({
+  collapsed,
+  mobileOpen,
+  onCloseMobile,
+  onToggleCollapsed,
+}: SidebarProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { comingSoon } = useToast()
+  const { user, logout, openLogin, isAuthenticated } = useAuth()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
+  const displayName = user?.name ?? 'Dr. T. Moyo'
+  const displayEmail = user?.email ?? 't.moyo@researchmind.ai'
+
   const handleLogout = () => {
     setUserMenuOpen(false)
+    logout()
     navigate('/')
   }
 
@@ -50,7 +65,7 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [isAuthenticated])
 
   const handleNewChat = () => {
     const targetProject = activeProjectId ?? 'healthcare-access'
@@ -88,24 +103,35 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
         ].join(' ')}
       >
         <div
-          className={`flex h-14 items-center gap-2.5 border-b border-ink-100 ${isIconOnly ? 'justify-center px-2' : 'px-4'}`}
+          className={`flex h-14 items-center border-b border-ink-100 ${isIconOnly ? 'px-1.5' : 'gap-2.5 px-3'}`}
         >
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
-            <SparkleIcon className="size-4.5" />
+          <div
+            className={`flex min-w-0 items-center ${isIconOnly ? 'flex-1 justify-center' : 'flex-1 gap-2.5'}`}
+          >
+            <SparkleIcon className="size-4.5 shrink-0 text-ink-800" />
+            {!isIconOnly ? (
+              <div className="min-w-0">
+                <p className="truncate text-[0.86rem] font-semibold tracking-tight text-ink-900">
+                  ResearchMind AI
+                </p>
+                <p className="truncate text-[0.68rem] text-ink-400">Qualitative research assistant</p>
+              </div>
+            ) : null}
           </div>
-          {!isIconOnly ? (
-            <div className="min-w-0">
-              <p className="truncate text-[0.86rem] font-semibold tracking-tight text-ink-900">
-                ResearchMind AI
-              </p>
-              <p className="truncate text-[0.68rem] text-ink-400">Qualitative research assistant</p>
-            </div>
-          ) : null}
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="hidden shrink-0 rounded-lg p-1.5 text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-700 lg:inline-flex"
+          >
+            {collapsed ? <PanelIcon className="size-4.5" /> : <PanelLeftIcon className="size-4.5" />}
+          </button>
           <button
             type="button"
             onClick={onCloseMobile}
             aria-label="Close navigation"
-            className="ml-auto rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700 lg:hidden"
+            className="shrink-0 rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700 lg:hidden"
           >
             <CloseIcon className="size-4" />
           </button>
@@ -185,101 +211,118 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
         )}
 
         <div className={`relative border-t border-ink-100 p-3 ${isIconOnly ? 'px-2' : ''}`} dir="ltr">
-          <div className={`flex items-center gap-2.5 ${isIconOnly ? 'flex-col' : ''}`}>
+          {user ? (
+            <>
+              <div className={`flex items-center gap-2.5 ${isIconOnly ? 'flex-col' : ''}`}>
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen((value) => !value)}
+                  aria-haspopup="menu"
+                  aria-expanded={userMenuOpen}
+                  aria-label="Account menu"
+                  className="flex shrink-0 items-center rounded-full transition-opacity hover:opacity-80"
+                >
+                  <div className="flex size-8 items-center justify-center rounded-full bg-ink-800 text-[0.7rem] font-semibold text-white dark:bg-ink-100 dark:text-ink-800">
+                    {initials(displayName)}
+                  </div>
+                </button>
+
+                {!isIconOnly ? (
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[0.8rem] font-medium text-ink-800">{displayName}</p>
+                    <span className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-2 py-0.5 text-[0.62rem] font-semibold tracking-wide text-brand-700 dark:border-brand-400/30 dark:bg-brand-400/10 dark:text-brand-300">
+                      <span className="size-1 rounded-full bg-emerald-500" />
+                      Researcher plan
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+
+              {userMenuOpen ? (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setUserMenuOpen(false)}
+                    aria-hidden="true"
+                  />
+                  <div
+                    role="menu"
+                    aria-label="Account"
+                    className={[
+                      'absolute bottom-full z-20 mb-1.5 w-56 origin-bottom-right overflow-hidden rounded-xl border border-ink-200 bg-surface py-1 shadow-raised',
+                      isIconOnly ? 'left-1/2 right-0' : 'right-2',
+                    ].join(' ')}
+                  >
+                    <div className="border-b border-ink-100 px-3 py-2.5">
+                      <p className="truncate text-[0.8rem] font-medium text-ink-800">{displayName}</p>
+                      <p className="truncate text-[0.7rem] text-ink-400">{displayEmail}</p>
+                    </div>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setUserMenuOpen(false)
+                        navigate('/settings')
+                        onCloseMobile()
+                      }}
+                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
+                    >
+                      <SettingsIcon className="size-4 shrink-0 text-ink-400" />
+                      Settings
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setUserMenuOpen(false)
+                        navigate('/subscription')
+                        onCloseMobile()
+                      }}
+                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
+                    >
+                      <CardIcon className="size-4 shrink-0 text-ink-400" />
+                      Subscription
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setUserMenuOpen(false)
+                        comingSoon('The help centre')
+                      }}
+                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
+                    >
+                      <HelpIcon className="size-4 shrink-0 text-ink-400" />
+                      Help
+                    </button>
+                    <div className="my-1 border-t border-ink-100" />
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
+                    >
+                      <LogOutIcon className="size-4 shrink-0 text-ink-400" />
+                      Log out
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </>
+          ) : (
             <button
               type="button"
-              onClick={() => setUserMenuOpen((value) => !value)}
-              aria-haspopup="menu"
-              aria-expanded={userMenuOpen}
-              aria-label="Account menu"
-              className="flex shrink-0 items-center rounded-full transition-opacity hover:opacity-80"
+              onClick={openLogin}
+              aria-label="Log in"
+              className={[
+                'flex items-center justify-center gap-2 rounded-xl border border-ink-200 bg-surface font-medium text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50',
+                isIconOnly ? 'size-9' : 'w-full px-3 py-2.5 text-[0.84rem]',
+              ].join(' ')}
             >
-              <div className="flex size-8 items-center justify-center rounded-full bg-ink-800 text-[0.7rem] font-semibold text-white dark:bg-ink-100 dark:text-ink-800">
-                {initials('Dr. T. Moyo')}
-              </div>
+              <UserIcon className="size-4 shrink-0 text-ink-400" />
+              {!isIconOnly ? 'Log in' : null}
             </button>
-
-            {!isIconOnly ? (
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[0.8rem] font-medium text-ink-800">Dr. T. Moyo</p>
-                <span className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-2 py-0.5 text-[0.62rem] font-semibold tracking-wide text-brand-700 dark:border-brand-400/30 dark:bg-brand-400/10 dark:text-brand-300">
-                  <span className="size-1 rounded-full bg-emerald-500" />
-                  Researcher plan
-                </span>
-              </div>
-            ) : null}
-          </div>
-
-          {userMenuOpen ? (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setUserMenuOpen(false)}
-                aria-hidden="true"
-              />
-              <div
-                role="menu"
-                aria-label="Account"
-                className={[
-                  'absolute bottom-full z-20 mb-1.5 w-56 origin-bottom-right overflow-hidden rounded-xl border border-ink-200 bg-surface py-1 shadow-raised',
-                  isIconOnly ? 'left-1/2 right-0' : 'right-2',
-                ].join(' ')}
-              >
-                <div className="border-b border-ink-100 px-3 py-2.5">
-                  <p className="truncate text-[0.8rem] font-medium text-ink-800">Dr. T. Moyo</p>
-                  <p className="truncate text-[0.7rem] text-ink-400">t.moyo@researchmind.ai</p>
-                </div>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setUserMenuOpen(false)
-                    navigate('/settings')
-                    onCloseMobile()
-                  }}
-                  className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
-                >
-                  <SettingsIcon className="size-4 shrink-0 text-ink-400" />
-                  Settings
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setUserMenuOpen(false)
-                    navigate('/subscription')
-                    onCloseMobile()
-                  }}
-                  className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
-                >
-                  <CardIcon className="size-4 shrink-0 text-ink-400" />
-                  Subscription
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setUserMenuOpen(false)
-                    comingSoon('The help centre')
-                  }}
-                  className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
-                >
-                  <HelpIcon className="size-4 shrink-0 text-ink-400" />
-                  Help
-                </button>
-                <div className="my-1 border-t border-ink-100" />
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={handleLogout}
-                  className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
-                >
-                  <LogOutIcon className="size-4 shrink-0 text-ink-400" />
-                  Log out
-                </button>
-              </div>
-            </>
-          ) : null}
+          )}
         </div>
       </aside>
     </>

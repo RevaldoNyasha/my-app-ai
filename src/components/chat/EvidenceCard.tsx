@@ -41,7 +41,7 @@ export function EvidenceCard({ evidence, onSelect, index }: EvidenceCardProps) {
       </span>
 
       <span className="mt-2 flex gap-2">
-        <QuoteIcon className="mt-0.5 size-3.5 shrink-0 text-brand-300" />
+        <QuoteIcon className="mt-0.5 size-3.5 shrink-0 text-ink-300" />
         <span className="font-serif text-[0.88rem] leading-6 text-ink-700 italic">
           {evidence.quote}
         </span>

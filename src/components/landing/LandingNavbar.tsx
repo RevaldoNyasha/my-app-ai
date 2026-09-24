@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRightIcon, CloseIcon, MenuIcon } from '@/components/ui/icons'
-import { LandingLogo } from './LandingLogo'
+import { ArrowRightIcon, CloseIcon, MenuIcon, SparkleIcon } from '@/components/ui/icons'
 
 export function LandingNavbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -17,7 +16,7 @@ export function LandingNavbar() {
   const containerClass = [
     'fixed inset-x-0 top-0 z-50 transition-all duration-300',
     scrolled
-      ? 'border-b border-white/[0.06] bg-[#050908]/85 backdrop-blur-xl'
+      ? 'border-b border-white/[0.06] bg-[#060707]/85 backdrop-blur-xl'
       : 'border-b border-transparent bg-transparent',
   ].join(' ')
 
@@ -30,22 +29,16 @@ export function LandingNavbar() {
           aria-label="ResearchMind AI — home"
           onClick={() => setOpen(false)}
         >
-          <LandingLogo className="size-8" />
+          <SparkleIcon className="size-8 text-white" aria-hidden="true" />
           <span className="text-[0.98rem] font-semibold tracking-tight text-white">
-            ResearchMind <span className="text-emerald-300">AI</span>
+            ResearchMind <span className="text-white">AI</span>
           </span>
         </Link>
 
         <div className="ml-auto hidden items-center gap-2.5 lg:flex">
           <Link
             to="/projects/healthcare-access/chat"
-            className="rounded-lg px-3.5 py-2 text-[0.9rem] font-medium text-slate-200 transition-colors hover:text-white"
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/projects/healthcare-access/chat"
-            className="group inline-flex h-9.5 items-center gap-2 rounded-xl bg-emerald-400 px-4 text-[0.9rem] font-semibold text-[#05120c] shadow-[0_0_22px_-8px_rgba(52,211,153,0.7)] transition-all duration-200 hover:-translate-y-px hover:bg-emerald-300"
+            className="group inline-flex h-9.5 items-center gap-2 rounded-xl bg-white px-4 text-[0.9rem] font-semibold text-[#060707] shadow-[0_0_22px_-8px_rgba(255,255,255,0.45)] transition-all duration-200 hover:-translate-y-px hover:bg-slate-200"
           >
             Get started
             <ArrowRightIcon className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -64,19 +57,12 @@ export function LandingNavbar() {
       </div>
 
       {open ? (
-        <div className="border-t border-white/[0.06] bg-[#050908]/95 backdrop-blur-xl lg:hidden">
+        <div className="border-t border-white/[0.06] bg-[#060707]/95 backdrop-blur-xl lg:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col px-5 py-4 sm:px-8" aria-label="Account">
             <Link
               to="/projects/healthcare-access/chat"
               onClick={() => setOpen(false)}
-              className="rounded-xl border border-white/[0.1] px-4 py-2.5 text-center text-[0.92rem] font-medium text-slate-100 transition-colors hover:bg-white/[0.05]"
-            >
-              Sign in
-            </Link>
-            <Link
-              to="/projects/healthcare-access/chat"
-              onClick={() => setOpen(false)}
-              className="mt-2.5 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-400 px-4 py-2.5 text-[0.92rem] font-semibold text-[#05120c]"
+              className="mt-2.5 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[0.92rem] font-semibold text-[#060707]"
             >
               Get started
               <ArrowRightIcon className="size-4" />

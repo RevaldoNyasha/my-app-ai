@@ -1,17 +1,23 @@
 import { useCallback, useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { Header } from '@/components/layout/Header'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useAuth } from '@/auth/AuthContext'
 
 const COLLAPSE_KEY = 'researchmind.sidebar.collapsed'
 
+const PROJECT_DETAIL_RE = /^\/projects\/[^/]+(?:\/.*)?$/
+
 export function AppLayout() {
+  const { isAuthenticated } = useAuth()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem(COLLAPSE_KEY) === 'true',
   )
   const [mobileOpen, setMobileOpen] = useState(false)
+  const location = useLocation()
+  const isProjectDetail = PROJECT_DETAIL_RE.test(location.pathname)
 
   const toggleSidebar = useCallback(() => {
     setCollapsed((previous) => {
@@ -27,16 +33,19 @@ export function AppLayout() {
         collapsed={collapsed}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
+        onToggleCollapsed={toggleSidebar}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <Header
-          collapsed={collapsed}
-          onToggleSidebar={toggleSidebar}
-          onOpenMobileSidebar={() => setMobileOpen(true)}
-        />
+        {isAuthenticated && !isProjectDetail ? (
+          <Header
+            collapsed={collapsed}
+            onToggleSidebar={toggleSidebar}
+            onOpenMobileSidebar={() => setMobileOpen(true)}
+          />
+        ) : null}
         <main className="min-h-0 flex-1 overflow-hidden">
-          <Outlet context={{ isDesktop }} />
+          <Outlet context={{ isDesktop, openMobileSidebar: () => setMobileOpen(true) }} />
         </main>
       </div>
     </div>

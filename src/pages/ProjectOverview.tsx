@@ -13,6 +13,7 @@ import {
   SparkleIcon,
 } from '@/components/ui/icons'
 import { formatRelativeTime } from '@/lib/format'
+import { useAuth } from '@/auth/AuthContext'
 import {
   listConversations,
   listDocuments,
@@ -28,6 +29,7 @@ import type {
 
 export function ProjectOverview() {
   const { project } = useProjectContext()
+  const { isAuthenticated } = useAuth()
   const [themes, setThemes] = useState<ResearchTheme[]>([])
   const [documents, setDocuments] = useState<ResearchDocument[]>([])
   const [reports, setReports] = useState<ResearchReport[]>([])
@@ -52,7 +54,7 @@ export function ProjectOverview() {
     return () => {
       cancelled = true
     }
-  }, [project.id])
+  }, [project.id, isAuthenticated])
 
   const quickActions = [
     {
@@ -101,7 +103,7 @@ export function ProjectOverview() {
 
             <Link
               to={`/projects/${project.id}/chat`}
-              className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.84rem] font-medium text-white transition-colors hover:bg-brand-700"
+              className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-ink-100 px-4 text-[0.84rem] font-medium text-ink-800 transition-colors hover:bg-ink-200"
             >
               <SparkleIcon className="size-4" />
               Start new analysis
@@ -196,7 +198,7 @@ export function ProjectOverview() {
                   to={action.to}
                   className="group flex items-start gap-3 rounded-2xl border border-ink-200 bg-surface px-4 py-3 transition-colors hover:border-brand-300 hover:bg-brand-50/40"
                 >
-                  <action.icon className="mt-0.5 size-4 shrink-0 text-brand-600" />
+                  <action.icon className="mt-0.5 size-4 shrink-0 text-ink-300" />
                   <span className="min-w-0">
                     <span className="block text-[0.84rem] font-medium text-ink-800">
                       {action.label}

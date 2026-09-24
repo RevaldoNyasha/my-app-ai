@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { FilterIcon, SearchIcon, UploadIcon } from '@/components/ui/icons'
 import { useToast } from '@/hooks/useToast'
+import { useAuth } from '@/auth/AuthContext'
 import { listDocuments, listProjects, uploadDocuments } from '@/services/researchService'
 import type { ResearchDocument, ResearchProject } from '@/types/research'
 
@@ -17,6 +18,7 @@ interface ResearchDataPageProps {
 
 export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
   const { showToast } = useToast()
+  const { isAuthenticated, usageCount, recordUsage, openLogin } = useAuth()
   const [documents, setDocuments] = useState<ResearchDocument[]>([])
   const [projects, setProjects] = useState<ResearchProject[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -44,7 +46,7 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
     return () => {
       cancelled = true
     }
-  }, [projectId])
+  }, [projectId, isAuthenticated])
 
   const projectNames = useMemo(
     () => Object.fromEntries(projects.map((project) => [project.id, project.name])),
@@ -66,6 +68,12 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
 
   const handleFiles = async (files: File[]) => {
     if (files.length === 0) return
+
+    if (!isAuthenticated && usageCount >= 1) {
+      openLogin()
+      return
+    }
+    recordUsage()
 
     setIsUploading(true)
     const targetProject = projectId ?? projects[0]?.id ?? 'healthcare-access'
@@ -237,7 +245,7 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
               : 'border-ink-200 bg-canvas hover:border-brand-300 hover:bg-brand-50/40',
           ].join(' ')}
         >
-          <UploadIcon className="size-5 text-brand-500" />
+          <UploadIcon className="size-5 text-ink-300" />
           <span className="mt-3 text-[0.88rem] font-medium text-ink-800">
             {isUploading ? 'Uploading…' : 'Drop files here or click to browse'}
           </span>

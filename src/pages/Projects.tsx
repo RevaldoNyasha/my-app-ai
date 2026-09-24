@@ -6,9 +6,11 @@ import { Modal } from '@/components/ui/Modal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { FolderIcon, PlusIcon, SearchIcon } from '@/components/ui/icons'
 import { listProjects } from '@/services/researchService'
+import { useAuth } from '@/auth/AuthContext'
 import type { ResearchProject } from '@/types/research'
 
 export function Projects() {
+  const { isAuthenticated, openLogin } = useAuth()
   const [projects, setProjects] = useState<ResearchProject[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -27,7 +29,7 @@ export function Projects() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [isAuthenticated])
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase()
@@ -38,6 +40,14 @@ export function Projects() {
         project.description.toLowerCase().includes(normalized),
     )
   }, [projects, query])
+
+  const handleCreateClick = () => {
+    if (!isAuthenticated) {
+      openLogin()
+      return
+    }
+    setIsCreateOpen(true)
+  }
 
   const handleCreate = () => {
     const name = draftName.trim()
@@ -73,38 +83,35 @@ export function Projects() {
         eyebrow="Workspace"
         title="Research Projects"
         description="Each project keeps its data, conversations, themes and reports together so the assistant always answers in the right context."
-        actions={
-          <Button onClick={() => setIsCreateOpen(true)}>
-            <PlusIcon className="size-4" />
-            Create Research Project
-          </Button>
-        }
       />
 
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search research projects..."
-            aria-label="Search research projects"
-            className="h-10 w-full rounded-xl border border-ink-200 bg-surface pl-9 pr-3 text-[0.86rem] text-ink-800 outline-none transition-colors placeholder:text-ink-400 focus:border-brand-400"
-          />
+      {isAuthenticated ? (
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search research projects..."
+              aria-label="Search research projects"
+              className="h-10 w-full rounded-xl border border-ink-200 bg-surface pl-9 pr-3 text-[0.86rem] text-ink-800 outline-none transition-colors placeholder:text-ink-400 focus:border-brand-400"
+            />
+          </div>
+          <span className="text-[0.78rem] text-ink-500">
+            {isLoading ? 'Loading…' : `${filtered.length} projects`}
+          </span>
         </div>
-        <span className="text-[0.78rem] text-ink-500">
-          {isLoading ? 'Loading…' : `${filtered.length} projects`}
-        </span>
-      </div>
+      ) : null}
 
       {!isLoading && filtered.length === 0 ? (
         <EmptyState
           icon={<FolderIcon className="size-5" />}
           title="No research projects found"
-          description="Try a different search term, or create a new research project to get started."
+          description="Create a new research project to get started."
           action={
-            <Button variant="outline" size="sm" onClick={() => setQuery('')}>
-              Clear search
+            <Button onClick={handleCreateClick}>
+              <PlusIcon className="size-4" />
+              Create Research Project
             </Button>
           }
         />

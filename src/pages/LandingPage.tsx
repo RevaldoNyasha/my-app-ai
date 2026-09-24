@@ -9,7 +9,7 @@ import { LandingFooter } from '@/components/landing/LandingFooter'
 export function LandingPage() {
   return (
     <MotionConfig reducedMotion="user">
-      <div className="landing-ink relative min-h-screen overflow-x-clip text-slate-100 antialiased selection:bg-emerald-400/30 selection:text-emerald-50">
+      <div className="landing-ink relative min-h-screen overflow-x-clip text-slate-100 antialiased selection:bg-white/20 selection:text-white">
         <LandingNavbar />
         <main>
           <HeroSection />

@@ -68,7 +68,7 @@ export function ChatInput({ value, onChange, onSend, isSending = false }: ChatIn
           onClick={onSend}
           disabled={!canSend}
           aria-label="Send message"
-          className="mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-ink-200 disabled:text-ink-400"
+          className="mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-ink-100 text-ink-800 transition-colors hover:bg-ink-200 disabled:cursor-not-allowed disabled:bg-ink-200 disabled:text-ink-400"
         >
           <SendIcon className="size-4.5" />
         </button>

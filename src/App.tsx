@@ -1,4 +1,6 @@
 import { BrowserRouter, Route, Routes, useParams } from 'react-router-dom'
+import { AuthProvider } from '@/auth/AuthContext'
+import { LoginModal } from '@/components/auth/LoginModal'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ProjectLayout } from '@/components/layout/ProjectLayout'
 import { LandingPage } from '@/pages/LandingPage'
@@ -30,22 +32,25 @@ function ProjectReportsRoute() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route element={<AppLayout />}>
-          <Route path="projects" element={<Projects />} />
-          <Route path="projects/:projectId" element={<ProjectLayout />}>
-            <Route index element={<ProjectOverview />} />
-            <Route path="chat" element={<ProjectChat />} />
-            <Route path="data" element={<ProjectDataRoute />} />
-            <Route path="analysis" element={<ProjectAnalysisRoute />} />
-            <Route path="reports" element={<ProjectReportsRoute />} />
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route element={<AppLayout />}>
+            <Route path="projects" element={<Projects />} />
+            <Route path="projects/:projectId" element={<ProjectLayout />}>
+              <Route index element={<ProjectOverview />} />
+              <Route path="chat" element={<ProjectChat />} />
+              <Route path="data" element={<ProjectDataRoute />} />
+              <Route path="analysis" element={<ProjectAnalysisRoute />} />
+              <Route path="reports" element={<ProjectReportsRoute />} />
+            </Route>
+            <Route path="settings" element={<Settings />} />
+            <Route path="subscription" element={<SubscriptionPage />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
-          <Route path="settings" element={<Settings />} />
-          <Route path="subscription" element={<SubscriptionPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
+        </Routes>
+        <LoginModal />
+      </AuthProvider>
     </BrowserRouter>
   )
 }

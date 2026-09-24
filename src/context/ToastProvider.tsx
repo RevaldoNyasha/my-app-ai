@@ -24,7 +24,7 @@ function Toaster({
           className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border border-ink-200 bg-surface px-4 py-3 shadow-raised"
           style={{ animation: 'rise 180ms ease-out' }}
         >
-          <SparkleIcon className="mt-0.5 size-4 shrink-0 text-brand-500" />
+          <SparkleIcon className="mt-0.5 size-4 shrink-0 text-ink-300" />
           <div className="min-w-0 flex-1">
             <p className="text-[0.82rem] font-semibold text-ink-900">{toast.title}</p>
             {toast.description ? (

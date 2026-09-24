@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { LayersIcon } from '@/components/ui/icons'
 import { getProject, listThemeRelationships, listThemes } from '@/services/researchService'
+import { useAuth } from '@/auth/AuthContext'
 import type { ResearchTheme, ThemeRelationship } from '@/types/research'
 
 interface AnalysisPageProps {
@@ -13,6 +14,7 @@ interface AnalysisPageProps {
 }
 
 export function AnalysisPage({ projectId }: AnalysisPageProps) {
+  const { isAuthenticated } = useAuth()
   const [themes, setThemes] = useState<ResearchTheme[]>([])
   const [relationships, setRelationships] = useState<ThemeRelationship[]>([])
   const [projectName, setProjectName] = useState<string>()
@@ -35,7 +37,7 @@ export function AnalysisPage({ projectId }: AnalysisPageProps) {
     return () => {
       cancelled = true
     }
-  }, [projectId])
+  }, [projectId, isAuthenticated])
 
   const totals = useMemo(
     () => ({

@@ -38,7 +38,7 @@ function TypingDots() {
       {[0, 1, 2].map((dot) => (
         <motion.span
           key={dot}
-          className="size-1.5 rounded-full bg-emerald-300"
+          className="size-1.5 rounded-full bg-white"
           initial={{ opacity: 0.3, y: 0 }}
           animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
           transition={{ duration: 1.1, repeat: Infinity, delay: dot * 0.18 }}
@@ -83,7 +83,7 @@ export function ChatDemo() {
             initial={{ opacity: 0, y: 26 }}
             animate={{ opacity: inView ? 1 : 0, y: inView ? 0 : 26 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0a1512]/80 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.9),0_0_60px_-30px_rgba(16,185,129,0.35)]"
+            className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.04] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.9),0_0_60px_-30px_rgba(255,255,255,0.18)]"
           >
             <div
               className="landing-glow absolute -top-24 left-1/2 h-48 w-[80%] -translate-x-1/2 rounded-full blur-2xl"
@@ -96,7 +96,7 @@ export function ChatDemo() {
                 <span className="size-2.5 rounded-full bg-white/[0.12]" />
                 <span className="size-2.5 rounded-full bg-white/[0.12]" />
               </span>
-              <span className="ml-2.5 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.08] px-2.5 py-0.5 text-[0.7rem] font-medium text-emerald-200/90">
+              <span className="ml-2.5 inline-flex items-center gap-1.5 rounded-full border border-white/[0.12] bg-white/[0.05] px-2.5 py-0.5 text-[0.7rem] font-medium text-slate-300">
                 <SparkleIcon className="size-3" />
                 ResearchMind chat
               </span>
@@ -111,7 +111,7 @@ export function ChatDemo() {
                   transition={{ duration: 0.5, ease: 'easeOut' }}
                   className="flex justify-end"
                 >
-                  <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-emerald-400/[0.12] px-4 py-3 text-[0.9rem] leading-6 text-emerald-50 ring-1 ring-emerald-400/25">
+                  <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-white/[0.07] px-4 py-3 text-[0.9rem] leading-6 text-slate-100 ring-1 ring-white/[0.1]">
                     <p>
                       What are the major barriers affecting access to healthcare among young
                       people?
@@ -127,9 +127,7 @@ export function ChatDemo() {
                   transition={{ duration: 0.4 }}
                   className="flex items-center gap-2.5"
                 >
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-300">
-                    <SparkleIcon className="size-4" />
-                  </div>
+                  <SparkleIcon className="size-4 shrink-0 text-white" />
                   <TypingDots />
                 </motion.div>
               ) : null}
@@ -141,9 +139,7 @@ export function ChatDemo() {
                   transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                   className="flex items-start gap-2.5"
                 >
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-300">
-                    <SparkleIcon className="size-4" />
-                  </div>
+                  <SparkleIcon className="mt-0.5 size-4 shrink-0 text-white" />
                   <div className="min-w-0 flex-1">
                     <div className="rounded-2xl rounded-tl-sm bg-white/[0.04] px-4 py-3 ring-1 ring-white/[0.07]">
                       <motion.p
@@ -180,7 +176,7 @@ export function ChatDemo() {
 
                     {phase >= 3 ? (
                       <div className="mt-4 space-y-2.5">
-                        <p className="flex items-center gap-1.5 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-emerald-300/80">
+                        <p className="flex items-center gap-1.5 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-400">
                           <QuoteIcon className="size-3.5" />
                           Evidence
                         </p>
@@ -192,7 +188,7 @@ export function ChatDemo() {
                             transition={{ duration: 0.5, delay: index * 0.18, ease: 'easeOut' }}
                             className="rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3"
                           >
-                            <p className="text-[0.7rem] font-medium tracking-wide text-emerald-200/80">
+                            <p className="text-[0.7rem] font-medium tracking-wide text-slate-400">
                               {item.ref}
                             </p>
                             <p className="mt-1 text-[0.84rem] leading-6 text-slate-300">
@@ -218,7 +214,7 @@ export function ChatDemo() {
                       <span
                         key={FLOW_LABELS[index]}
                         title={FLOW_LABELS[index]}
-                        className="flex size-6 items-center justify-center rounded-md border border-emerald-400/15 bg-emerald-400/[0.06] text-emerald-300/70"
+                        className="flex size-6 items-center justify-center text-slate-400"
                       >
                         <Icon className="size-3.5" />
                       </span>
@@ -227,7 +223,7 @@ export function ChatDemo() {
                   <button
                     type="button"
                     aria-label="Send message"
-                    className="flex size-9 items-center justify-center rounded-lg bg-emerald-400 text-[#05120c] transition-colors hover:bg-emerald-300"
+                    className="flex size-9 items-center justify-center rounded-lg bg-white text-[#060707] transition-colors hover:bg-slate-200"
                   >
                     <SendIcon className="size-4" />
                   </button>

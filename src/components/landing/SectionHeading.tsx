@@ -15,7 +15,7 @@ export function SectionHeading({
 
   return (
     <div className={alignClass}>
-      <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-emerald-300/80">
+      <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400">
         {eyebrow}
       </p>
       <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-[2.65rem] lg:leading-[1.1]">

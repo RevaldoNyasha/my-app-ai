@@ -37,9 +37,9 @@ export function ValueStrip() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.55, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-              className="group flex items-start gap-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-4 transition-colors duration-300 hover:border-emerald-400/20 hover:bg-white/[0.035]"
+              className="group flex items-start gap-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-4 transition-colors duration-300 hover:border-white/20 hover:bg-white/[0.035]"
             >
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-400/[0.08] text-emerald-300">
+              <div className="flex size-9 shrink-0 items-center justify-center text-white">
                 <value.icon className="size-4.5" />
               </div>
               <div className="min-w-0">

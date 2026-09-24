@@ -43,7 +43,7 @@ export function EvidencePanel({ evidence, onClose, projectName }: EvidencePanelP
         aria-label="Evidence detail"
       >
         <header className="flex h-14 shrink-0 items-center gap-2 border-b border-ink-100 px-4">
-          <SourceIcon className="size-4 text-brand-600" />
+          <SourceIcon className="size-4 text-ink-300" />
           <h2 className="text-[0.82rem] font-semibold text-ink-900">Evidence</h2>
           <button
             type="button"
@@ -82,7 +82,7 @@ export function EvidencePanel({ evidence, onClose, projectName }: EvidencePanelP
               Original Evidence
             </p>
             <blockquote className="relative mt-2 rounded-2xl border border-ink-100 bg-canvas px-4 py-4">
-              <QuoteIcon className="absolute right-3 top-3 size-5 text-brand-200" />
+              <QuoteIcon className="absolute right-3 top-3 size-5 text-ink-300" />
               <p className="font-serif text-[0.95rem] leading-7 text-ink-800 italic">
                 {evidence.quote}
               </p>

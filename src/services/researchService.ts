@@ -3,6 +3,7 @@ import { themeRelationships, themes } from '@/data/mockAnalysis'
 import { mockResponses, seededMessages, type MockResponse } from '@/data/mockMessages'
 import { conversations, participants, projects } from '@/data/mockProjects'
 import { reports } from '@/data/mockReports'
+import { isAuthenticated } from '@/auth/session'
 import type {
   ChatMessage,
   Conversation,
@@ -30,13 +31,17 @@ const simulateLatency = (ms = 320) =>
 
 const clone = <T,>(value: T): T => structuredClone(value)
 
+/** First-time visitors (not logged in) start with an empty workspace. */
+const onlyForUsers = <T,>(value: T): T => (isAuthenticated() ? clone(value) : ([] as T))
+
 export async function listProjects(): Promise<ResearchProject[]> {
   await simulateLatency(200)
-  return clone(projects)
+  return onlyForUsers(projects)
 }
 
 export async function getProject(projectId?: string): Promise<ResearchProject | undefined> {
   await simulateLatency(160)
+  if (!isAuthenticated()) return undefined
   return clone(projects.find((project) => project.id === projectId))
 }
 
@@ -45,13 +50,13 @@ export async function listDocuments(projectId?: string): Promise<ResearchDocumen
   const result = projectId
     ? documents.filter((document) => document.projectId === projectId)
     : documents
-  return clone(result)
+  return onlyForUsers(result)
 }
 
 export async function listThemes(projectId?: string): Promise<ResearchTheme[]> {
   await simulateLatency(220)
   const result = projectId ? themes.filter((theme) => theme.projectId === projectId) : themes
-  return clone(result)
+  return onlyForUsers(result)
 }
 
 export async function listThemeRelationships(projectId?: string): Promise<ThemeRelationship[]> {
@@ -63,7 +68,7 @@ export async function listThemeRelationships(projectId?: string): Promise<ThemeR
         return source?.projectId === projectId && target?.projectId === projectId
       })
     : themeRelationships
-  return clone(result)
+  return onlyForUsers(result)
 }
 
 export async function listReports(projectId?: string): Promise<ResearchReport[]> {
@@ -71,7 +76,7 @@ export async function listReports(projectId?: string): Promise<ResearchReport[]>
   const result = projectId
     ? reports.filter((report) => report.projectId === projectId)
     : reports
-  return clone(result)
+  return onlyForUsers(result)
 }
 
 export async function listConversations(projectId?: string): Promise<Conversation[]> {
@@ -79,7 +84,7 @@ export async function listConversations(projectId?: string): Promise<Conversatio
   const result = projectId
     ? conversations.filter((conversation) => conversation.projectId === projectId)
     : conversations
-  return clone(result)
+  return onlyForUsers(result)
 }
 
 export async function listParticipants(projectId?: string): Promise<Participant[]> {
@@ -87,11 +92,12 @@ export async function listParticipants(projectId?: string): Promise<Participant[
   const result = projectId
     ? participants.filter((participant) => participant.projectId === projectId)
     : participants
-  return clone(result)
+  return onlyForUsers(result)
 }
 
 export async function getMessages(projectId: string): Promise<ChatMessage[]> {
   await simulateLatency(240)
+  if (!isAuthenticated()) return []
   return clone(seededMessages.filter((message) => message.projectId === projectId))
 }
 

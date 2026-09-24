@@ -69,7 +69,7 @@ const FINAL_HOLD_MS = 2600
 function InsightBars({ active }: { active: boolean }) {
   return (
     <div className="mt-auto pt-4">
-      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-emerald-300/70">
+      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
         Themes identified
       </p>
       <div className="mt-2.5 space-y-2">
@@ -81,7 +81,7 @@ function InsightBars({ active }: { active: boolean }) {
             </div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
               <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-300"
+                className="h-full rounded-full bg-white/90"
                 style={{ transformOrigin: 'left center' }}
                 initial={false}
                 animate={{ scaleX: active ? 1 : 0.14, opacity: active ? 1 : 0.35 }}
@@ -107,7 +107,7 @@ function StageCard({
   return (
     <div
       className={[
-        'relative flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-[#0a1713]/80 px-4 py-5 transition-colors duration-700',
+        'relative flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-white/[0.035] px-4 py-5 transition-colors duration-700',
         active ? 'border-transparent' : 'border-white/[0.07]',
         stage.central ? 'lg:px-5 lg:py-6' : 'lg:py-5',
         className,
@@ -120,7 +120,7 @@ function StageCard({
         ].join(' ')}
         style={{
           boxShadow:
-            'inset 0 0 0 1px rgba(52, 211, 153, 0.38), 0 0 38px -8px rgba(16, 185, 129, 0.45)',
+            'inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 38px -8px rgba(255, 255, 255, 0.2)',
         }}
         aria-hidden="true"
       />
@@ -128,17 +128,15 @@ function StageCard({
       <div className="relative flex items-start justify-between gap-2">
         <div
           className={[
-            'flex size-9 shrink-0 items-center justify-center rounded-xl border transition-colors duration-700',
-            active
-              ? 'border-emerald-400/40 bg-emerald-400/10 text-emerald-300'
-              : 'border-white/[0.08] bg-white/[0.03] text-emerald-100/45',
+            'relative flex size-9 shrink-0 items-center justify-center transition-colors duration-700',
+            active ? 'text-white' : 'text-white/50',
           ].join(' ')}
         >
           <stage.icon className="size-4.5" />
         </div>
         {stage.tag ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.08] px-2 py-0.5 text-[0.64rem] font-medium text-emerald-200/80">
-            <span className="size-1 rounded-full bg-emerald-400/80" />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.15] bg-white/[0.06] px-2 py-0.5 text-[0.64rem] font-medium text-slate-300">
+            <span className="size-1 rounded-full bg-white/70" />
             {stage.tag}
           </span>
         ) : null}
@@ -161,7 +159,7 @@ function StageCard({
       {stage.central ? (
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl" aria-hidden="true">
           {active ? (
-            <div className="animate-scan-line absolute inset-x-4 top-0 h-12 rounded-full bg-gradient-to-b from-transparent via-emerald-400/[0.08] to-transparent" />
+            <div className="animate-scan-line absolute inset-x-4 top-0 h-12 rounded-full bg-gradient-to-b from-transparent via-white/[0.07] to-transparent" />
           ) : null}
         </div>
       ) : null}
@@ -170,7 +168,7 @@ function StageCard({
 }
 
 function ConnectorHorizontal({ active, live }: { active: boolean; live: boolean }) {
-  const stroke = active ? 'rgba(110, 231, 183, 0.85)' : 'rgba(52, 211, 153, 0.28)'
+  const stroke = active ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.28)'
   return (
     <div className="hidden w-12 shrink-0 items-stretch lg:flex xl:w-14" aria-hidden="true">
       <svg width="48" height="22" viewBox="0 0 48 22" className="mx-auto my-auto block">
@@ -187,10 +185,10 @@ function ConnectorHorizontal({ active, live }: { active: boolean; live: boolean 
         />
         {live ? (
           <>
-            <circle r="2" fill={active ? '#a7f3d0' : '#34d399'} opacity={active ? 0.95 : 0.55}>
+            <circle r="2" fill="#ffffff" opacity={active ? 0.95 : 0.55}>
               <animateMotion dur="1.4s" repeatCount="indefinite" path="M 4 11 L 44 11" />
             </circle>
-            <circle r="1.1" fill="#34d399" opacity="0.4">
+            <circle r="1.1" fill="#ffffff" opacity="0.4">
               <animateMotion dur="1.4s" repeatCount="indefinite" begin="-0.7s" path="M 4 11 L 44 11" />
             </circle>
           </>
@@ -201,7 +199,7 @@ function ConnectorHorizontal({ active, live }: { active: boolean; live: boolean 
 }
 
 function ConnectorVertical({ active, live }: { active: boolean; live: boolean }) {
-  const stroke = active ? 'rgba(110, 231, 183, 0.75)' : 'rgba(52, 211, 153, 0.3)'
+  const stroke = active ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.3)'
   return (
     <div className="flex justify-center py-1.5 lg:hidden" aria-hidden="true">
       <svg width="16" height="44" viewBox="0 0 16 44">
@@ -218,10 +216,10 @@ function ConnectorVertical({ active, live }: { active: boolean; live: boolean })
         />
         {live ? (
           <>
-            <circle r="2" fill="#6ee7b7" opacity="0.85">
+            <circle r="2" fill="#ffffff" opacity="0.85">
               <animateMotion dur="1.3s" repeatCount="indefinite" path="M 8 4 L 8 40" />
             </circle>
-            <circle r="1.1" fill="#34d399" opacity="0.4">
+            <circle r="1.1" fill="#ffffff" opacity="0.4">
               <animateMotion dur="1.3s" repeatCount="indefinite" begin="-0.65s" path="M 8 4 L 8 40" />
             </circle>
           </>
@@ -288,7 +286,7 @@ export function ResearchFlow() {
             key={stage.key}
             className={[
               'size-1.5 rounded-full transition-all duration-500',
-              index === active ? 'w-5 bg-emerald-400' : 'bg-emerald-400/25',
+              index === active ? 'w-5 bg-white' : 'bg-white/25',
             ].join(' ')}
           />
         ))}
