@@ -5,7 +5,8 @@ import { ThemeRelationshipMap } from '@/components/research/ThemeRelationshipMap
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { LayersIcon } from '@/components/ui/icons'
-import { getProject, listThemeRelationships, listThemes } from '@/services/researchService'
+import { listThemeRelationships, listThemes } from '@/services/researchService'
+import { getProject } from '@/services/projectService'
 import { useAuth } from '@/auth/AuthContext'
 import type { ResearchTheme, ThemeRelationship } from '@/types/research'
 
@@ -24,7 +25,11 @@ export function AnalysisPage({ projectId }: AnalysisPageProps) {
     let cancelled = false
     setIsLoading(true)
 
-    Promise.all([listThemes(projectId), listThemeRelationships(projectId), getProject(projectId)]).then(
+    Promise.all([
+      listThemes(projectId),
+      listThemeRelationships(projectId),
+      getProject(projectId).catch(() => undefined),
+    ]).then(
       ([themesResult, relationshipsResult, project]) => {
         if (cancelled) return
         setThemes(themesResult)

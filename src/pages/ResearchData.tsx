@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type DragEvent } from 'react'
+import { useOutletContext } from 'react-router-dom'
 import { PageContainer, PageHeading } from '@/components/layout/PageContainer'
 import { DataTable } from '@/components/research/DataTable'
 import { Button } from '@/components/ui/Button'
@@ -6,7 +7,10 @@ import { Modal } from '@/components/ui/Modal'
 import { FilterIcon, SearchIcon, UploadIcon } from '@/components/ui/icons'
 import { useToast } from '@/hooks/useToast'
 import { useAuth } from '@/auth/AuthContext'
-import { listDocuments, listProjects, uploadDocuments } from '@/services/researchService'
+import { ApiError } from '@/lib/api'
+import { deleteDocument, listDocuments, uploadDocuments } from '@/services/documentService'
+import { listProjects } from '@/services/projectService'
+import type { ProjectOutletContext } from '@/hooks/useProjectContext'
 import type { ResearchDocument, ResearchProject } from '@/types/research'
 
 const ACCEPTED_EXTENSIONS = ['PDF', 'DOCX', 'CSV', 'MP3', 'WAV', 'MP4']
@@ -16,9 +20,18 @@ interface ResearchDataPageProps {
   projectId?: string
 }
 
+interface UploadResult {
+  key: string
+  name: string
+  /** Error message when the server rejected the file. */
+  error?: string
+}
+
 export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
   const { showToast } = useToast()
-  const { isAuthenticated, usageCount, recordUsage, openLogin } = useAuth()
+  const { isAuthenticated, openLogin } = useAuth()
+  // Present when rendered inside a project; used to refresh its header counters.
+  const projectContext = useOutletContext<ProjectOutletContext | undefined>()
   const [documents, setDocuments] = useState<ResearchDocument[]>([])
   const [projects, setProjects] = useState<ResearchProject[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -28,25 +41,33 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-  const [uploadedNames, setUploadedNames] = useState<string[]>([])
+  const [uploadResults, setUploadResults] = useState<UploadResult[]>([])
   const [documentToDelete, setDocumentToDelete] = useState<ResearchDocument | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     let cancelled = false
 
-    Promise.all([listDocuments(projectId), listProjects()]).then(
-      ([documentsResult, projectsResult]) => {
-        if (cancelled) return
-        setDocuments(documentsResult)
-        setProjects(projectsResult)
-        setIsLoading(false)
-      },
-    )
+    Promise.all([
+      listDocuments(projectId).catch((error: unknown) => {
+        showToast({
+          title: 'Could not load research data',
+          description: error instanceof ApiError ? error.message : undefined,
+        })
+        return []
+      }),
+      listProjects().catch(() => []),
+    ]).then(([documentsResult, projectsResult]) => {
+      if (cancelled) return
+      setDocuments(documentsResult)
+      setProjects(projectsResult)
+      setIsLoading(false)
+    })
 
     return () => {
       cancelled = true
     }
-  }, [projectId, isAuthenticated])
+  }, [projectId, isAuthenticated, showToast])
 
   const projectNames = useMemo(
     () => Object.fromEntries(projects.map((project) => [project.id, project.name])),
@@ -67,23 +88,43 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
   }, [documents, query, typeFilter, extensionFilter])
 
   const handleFiles = async (files: File[]) => {
-    if (files.length === 0) return
+    if (files.length === 0 || isUploading) return
 
-    if (!isAuthenticated && usageCount >= 1) {
+    if (!isAuthenticated) {
       openLogin()
       return
     }
-    recordUsage()
+    if (!projectId) {
+      showToast({ title: 'Open a project to upload data' })
+      return
+    }
 
     setIsUploading(true)
-    const targetProject = projectId ?? projects[0]?.id ?? 'healthcare-access'
-    const created = await uploadDocuments(
-      targetProject,
-      files.map((file) => ({ name: file.name, size: file.size })),
+    // One request per file, so each file gets its own accept/reject reason.
+    const settled = await Promise.allSettled(
+      files.map((file) => uploadDocuments(projectId, [file])),
     )
 
-    setDocuments((previous) => [...created, ...previous])
-    setUploadedNames(created.map((document) => document.name))
+    const created: ResearchDocument[] = []
+    const results: UploadResult[] = settled.map((outcome, index) => {
+      const key = `${Date.now()}-${index}`
+      if (outcome.status === 'fulfilled') {
+        created.push(...outcome.value)
+        return { key, name: files[index].name }
+      }
+      const reason = outcome.reason
+      return {
+        key,
+        name: files[index].name,
+        error: reason instanceof ApiError ? reason.message : 'Upload failed',
+      }
+    })
+
+    if (created.length > 0) {
+      setDocuments((previous) => [...created, ...previous])
+      projectContext?.refreshProject()
+    }
+    setUploadResults((previous) => [...results, ...previous])
     setIsUploading(false)
   }
 
@@ -93,11 +134,28 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
     void handleFiles(Array.from(event.dataTransfer.files))
   }
 
-  const confirmDelete = () => {
+  const closeDelete = () => {
+    if (!isDeleting) setDocumentToDelete(null)
+  }
+
+  const confirmDelete = async () => {
     if (!documentToDelete) return
-    setDocuments((previous) => previous.filter((document) => document.id !== documentToDelete.id))
-    setDocumentToDelete(null)
-    showToast({ title: 'File deleted', description: `${documentToDelete.name} was removed.` })
+    const target = documentToDelete
+    setIsDeleting(true)
+    try {
+      await deleteDocument(target.projectId, target.id)
+      setDocuments((previous) => previous.filter((document) => document.id !== target.id))
+      projectContext?.refreshProject()
+      showToast({ title: 'File deleted', description: `${target.name} was removed.` })
+    } catch (error) {
+      showToast({
+        title: 'Could not delete file',
+        description: error instanceof ApiError ? error.message : undefined,
+      })
+    } finally {
+      setIsDeleting(false)
+      setDocumentToDelete(null)
+    }
   }
 
   const handleRetry = (document: ResearchDocument) => {
@@ -195,7 +253,7 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
 
       <Modal
         open={documentToDelete !== null}
-        onClose={() => setDocumentToDelete(null)}
+        onClose={closeDelete}
         title="Delete file?"
         description={
           documentToDelete
@@ -204,10 +262,12 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
         }
         footer={
           <>
-            <Button variant="ghost" onClick={() => setDocumentToDelete(null)}>
+            <Button variant="ghost" onClick={closeDelete} disabled={isDeleting}>
               Cancel
             </Button>
-            <Button onClick={confirmDelete}>Delete</Button>
+            <Button onClick={() => void confirmDelete()} disabled={isDeleting}>
+              {isDeleting ? 'Deleting…' : 'Delete'}
+            </Button>
           </>
         }
       >
@@ -275,22 +335,30 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
           ))}
         </div>
 
-        {uploadedNames.length > 0 ? (
+        {uploadResults.length > 0 ? (
           <div className="mt-4 rounded-xl border border-ink-100 bg-canvas px-3 py-3">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-ink-400">
-              Queued in this session
+              Uploaded in this session
             </p>
-            <ul className="mt-2 space-y-1">
-              {uploadedNames.map((name) => (
-                <li key={name} className="flex items-center gap-2 text-[0.78rem] text-ink-700">
-                  <span className="size-1.5 rounded-full bg-amber-500" />
-                  <span className="truncate">{name}</span>
+            <ul className="mt-2 space-y-1.5">
+              {uploadResults.map((result) => (
+                <li key={result.key} className="flex items-start gap-2 text-[0.78rem]">
+                  <span
+                    className={`mt-1.5 size-1.5 shrink-0 rounded-full ${
+                      result.error ? 'bg-red-500' : 'bg-amber-500'
+                    }`}
+                  />
+                  <span className="min-w-0">
+                    <span className="block truncate text-ink-700">{result.name}</span>
+                    <span
+                      className={`block text-[0.72rem] ${result.error ? 'text-red-600' : 'text-ink-400'}`}
+                    >
+                      {result.error ?? 'Stored — queued for processing'}
+                    </span>
+                  </span>
                 </li>
               ))}
             </ul>
-            <p className="mt-2 text-[0.72rem] text-ink-400">
-              Prototype only — files are not stored, transcribed or processed.
-            </p>
           </div>
         ) : null}
       </Modal>

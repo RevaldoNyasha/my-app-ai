@@ -68,8 +68,8 @@ export function Sidebar({
   }, [isAuthenticated])
 
   const handleNewChat = () => {
-    const targetProject = activeProjectId ?? 'healthcare-access'
-    navigate(`/projects/${targetProject}/chat?new=${Date.now()}`)
+    // Chat is project-scoped; outside a project, send the user to pick one.
+    navigate(activeProjectId ? `/projects/${activeProjectId}/chat?new=${Date.now()}` : '/projects')
     onCloseMobile()
   }
 
@@ -173,6 +173,9 @@ export function Sidebar({
               Recent Chats
             </p>
             <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto pb-2">
+              {conversations.length === 0 ? (
+                <p className="px-3 py-1 text-[0.76rem] text-ink-400">No chats yet</p>
+              ) : null}
               {conversations.map((conversation) => {
                 const isActive = activeConversationId === conversation.id
                 return (

@@ -1,15 +1,12 @@
-import { documents } from '@/data/mockDocuments'
 import { themeRelationships, themes } from '@/data/mockAnalysis'
 import { mockResponses, seededMessages, type MockResponse } from '@/data/mockMessages'
-import { conversations, participants, projects } from '@/data/mockProjects'
+import { participants } from '@/data/mockProjects'
 import { reports } from '@/data/mockReports'
 import { isAuthenticated } from '@/auth/session'
 import type {
   ChatMessage,
   Conversation,
   Participant,
-  ResearchDocument,
-  ResearchProject,
   ResearchReport,
   ResearchTheme,
   ThemeRelationship,
@@ -34,24 +31,7 @@ const clone = <T,>(value: T): T => structuredClone(value)
 /** First-time visitors (not logged in) start with an empty workspace. */
 const onlyForUsers = <T,>(value: T): T => (isAuthenticated() ? clone(value) : ([] as T))
 
-export async function listProjects(): Promise<ResearchProject[]> {
-  await simulateLatency(200)
-  return onlyForUsers(projects)
-}
-
-export async function getProject(projectId?: string): Promise<ResearchProject | undefined> {
-  await simulateLatency(160)
-  if (!isAuthenticated()) return undefined
-  return clone(projects.find((project) => project.id === projectId))
-}
-
-export async function listDocuments(projectId?: string): Promise<ResearchDocument[]> {
-  await simulateLatency(240)
-  const result = projectId
-    ? documents.filter((document) => document.projectId === projectId)
-    : documents
-  return onlyForUsers(result)
-}
+/* Projects and documents now come from the backend — see `projectService.ts` and `documentService.ts`. */
 
 export async function listThemes(projectId?: string): Promise<ResearchTheme[]> {
   await simulateLatency(220)
@@ -79,12 +59,13 @@ export async function listReports(projectId?: string): Promise<ResearchReport[]>
   return onlyForUsers(result)
 }
 
+/**
+ * Recent chats. Returns nothing until the backend has conversations
+ * (`GET /projects/{id}/conversations`); the old mock list is gone.
+ */
 export async function listConversations(projectId?: string): Promise<Conversation[]> {
-  await simulateLatency(180)
-  const result = projectId
-    ? conversations.filter((conversation) => conversation.projectId === projectId)
-    : conversations
-  return onlyForUsers(result)
+  void projectId
+  return []
 }
 
 export async function listParticipants(projectId?: string): Promise<Participant[]> {
@@ -139,39 +120,4 @@ export async function sendChatMessage(
     projectId,
     evidence: response.evidence,
   }
-}
-
-/** Simulates an upload. Files are never read or processed. */
-export async function uploadDocuments(
-  projectId: string,
-  files: { name: string; size: number }[],
-): Promise<ResearchDocument[]> {
-  await simulateLatency(600)
-
-  return files.map((file, index) => {
-    const extension = file.name.split('.').pop()?.toUpperCase() ?? 'FILE'
-    const extensionToKind: Record<string, ResearchDocument['kind']> = {
-      PDF: 'pdf',
-      DOCX: 'docx',
-      CSV: 'csv',
-      MP3: 'audio',
-      WAV: 'audio',
-      MP4: 'video',
-    }
-
-    return {
-      id: `doc-upload-${Date.now()}-${index}`,
-      projectId,
-      name: file.name,
-      kind: extensionToKind[extension] ?? 'notes',
-      type: extension === 'MP3' || extension === 'WAV' ? 'Interview' : 'Research Notes',
-      extension,
-      fileSize: `${Math.max(1, Math.round(file.size / 1024))} KB`,
-      status: 'processing' as const,
-      participantCount: 0,
-      language: 'English',
-      uploadedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-  })
 }

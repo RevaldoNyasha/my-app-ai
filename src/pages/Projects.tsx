@@ -1,35 +1,53 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { PageContainer, PageHeading } from '@/components/layout/PageContainer'
 import { ProjectCard } from '@/components/research/ProjectCard'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { FolderIcon, PlusIcon, SearchIcon } from '@/components/ui/icons'
-import { listProjects } from '@/services/researchService'
+import { createProject, deleteProject, listProjects } from '@/services/projectService'
 import { useAuth } from '@/auth/AuthContext'
+import { useToast } from '@/hooks/useToast'
+import { ApiError } from '@/lib/api'
 import type { ResearchProject } from '@/types/research'
+
+const NAME_MAX_LENGTH = 200
 
 export function Projects() {
   const { isAuthenticated, openLogin } = useAuth()
+  const { showToast } = useToast()
   const [projects, setProjects] = useState<ResearchProject[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [draftName, setDraftName] = useState('')
   const [draftDescription, setDraftDescription] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [projectToDelete, setProjectToDelete] = useState<ResearchProject | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    listProjects().then((result) => {
-      if (!cancelled) {
-        setProjects(result)
-        setIsLoading(false)
-      }
-    })
+    listProjects()
+      .then((result) => {
+        if (!cancelled) setProjects(result)
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return
+        setProjects([])
+        showToast({
+          title: 'Could not load projects',
+          description: error instanceof ApiError ? error.message : undefined,
+        })
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, showToast])
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase()
@@ -49,32 +67,58 @@ export function Projects() {
     setIsCreateOpen(true)
   }
 
-  const handleCreate = () => {
-    const name = draftName.trim()
-    if (!name) return
-
-    setProjects((previous) => [
-      {
-        id: `project-${Date.now()}`,
-        name,
-        description:
-          draftDescription.trim() || 'New research project. Upload data to begin analysis.',
-        documentCount: 0,
-        participantCount: 0,
-        interviewCount: 0,
-        focusGroupCount: 0,
-        themes: [],
-        codes: [],
-        status: 'active',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      ...previous,
-    ])
-
-    setDraftName('')
-    setDraftDescription('')
+  const closeCreate = () => {
     setIsCreateOpen(false)
+    setCreateError(null)
+  }
+
+  const handleCreate = async (event?: FormEvent) => {
+    event?.preventDefault()
+    const name = draftName.trim()
+    if (!name || isCreating) return
+
+    setIsCreating(true)
+    setCreateError(null)
+    try {
+      const created = await createProject({
+        name,
+        description: draftDescription.trim() || undefined,
+      })
+      setProjects((previous) => [created, ...previous])
+      setDraftName('')
+      setDraftDescription('')
+      setIsCreateOpen(false)
+      showToast({ title: 'Project created', description: `${created.name} is ready for data.` })
+    } catch (error) {
+      setCreateError(
+        error instanceof ApiError ? error.message : 'Could not create the project. Please try again.',
+      )
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  const closeDelete = () => {
+    if (!isDeleting) setProjectToDelete(null)
+  }
+
+  const confirmDelete = async () => {
+    if (!projectToDelete) return
+    const target = projectToDelete
+    setIsDeleting(true)
+    try {
+      await deleteProject(target.id)
+      setProjects((previous) => previous.filter((project) => project.id !== target.id))
+      showToast({ title: 'Project deleted', description: `${target.name} was removed.` })
+    } catch (error) {
+      showToast({
+        title: 'Could not delete project',
+        description: error instanceof ApiError ? error.message : undefined,
+      })
+    } finally {
+      setIsDeleting(false)
+      setProjectToDelete(null)
+    }
   }
 
   return (
@@ -118,28 +162,28 @@ export function Projects() {
       ) : (
         <div className="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard key={project.id} project={project} onDelete={setProjectToDelete} />
           ))}
         </div>
       )}
 
       <Modal
         open={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
+        onClose={closeCreate}
         title="Create research project"
         description="Projects group your data, conversations and reports."
         footer={
           <>
-            <Button variant="ghost" onClick={() => setIsCreateOpen(false)}>
+            <Button variant="ghost" onClick={closeCreate}>
               Cancel
             </Button>
-            <Button onClick={handleCreate} disabled={!draftName.trim()}>
-              Create project
+            <Button onClick={() => void handleCreate()} disabled={!draftName.trim() || isCreating}>
+              {isCreating ? 'Creating…' : 'Create project'}
             </Button>
           </>
         }
       >
-        <div className="space-y-4">
+        <form className="space-y-4" onSubmit={(event) => void handleCreate(event)}>
           <label className="block">
             <span className="mb-1.5 block text-[0.78rem] font-medium text-ink-700">
               Project name
@@ -147,6 +191,8 @@ export function Projects() {
             <input
               value={draftName}
               onChange={(event) => setDraftName(event.target.value)}
+              maxLength={NAME_MAX_LENGTH}
+              autoFocus
               placeholder="e.g. Maternal Healthcare Study"
               className="h-10 w-full rounded-xl border border-ink-200 bg-surface px-3 text-[0.86rem] text-ink-800 outline-none transition-colors placeholder:text-ink-400 focus:border-brand-400"
             />
@@ -165,10 +211,45 @@ export function Projects() {
             />
           </label>
 
-          <p className="rounded-xl bg-canvas px-3 py-2.5 text-[0.74rem] leading-5 text-ink-500">
-            This is a prototype — projects are stored locally and reset when you reload the page.
+          {createError ? (
+            <p role="alert" className="rounded-xl bg-red-50 px-3 py-2.5 text-[0.76rem] text-red-700">
+              {createError}
+            </p>
+          ) : null}
+        </form>
+      </Modal>
+
+      <Modal
+        open={projectToDelete !== null}
+        onClose={closeDelete}
+        title="Delete project?"
+        description={
+          projectToDelete
+            ? `${projectToDelete.name} will be permanently deleted. This cannot be undone.`
+            : undefined
+        }
+        footer={
+          <>
+            <Button variant="ghost" onClick={closeDelete} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void confirmDelete()}
+              disabled={isDeleting}
+              className="bg-red-600! text-white! hover:bg-red-700!"
+            >
+              {isDeleting ? 'Deleting…' : 'Delete project'}
+            </Button>
+          </>
+        }
+      >
+        {projectToDelete ? (
+          <p className="text-[0.85rem] leading-6 text-ink-600">
+            All {projectToDelete.documentCount} uploaded{' '}
+            {projectToDelete.documentCount === 1 ? 'file' : 'files'} in this project will be deleted
+            along with it.
           </p>
-        </div>
+        ) : null}
       </Modal>
     </PageContainer>
   )

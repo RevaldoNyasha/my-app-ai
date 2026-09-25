@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/icons'
 import { Badge, Dot } from '@/components/ui/Badge'
 import { EvidencePanel } from '@/components/research/EvidencePanel'
-import { getProject } from '@/services/researchService'
+import { getProject } from '@/services/projectService'
 import { useAuth } from '@/auth/AuthContext'
 import { type ProjectOutletContext } from '@/hooks/useProjectContext'
 import type { Evidence, ResearchProject } from '@/types/research'
@@ -42,14 +42,16 @@ export function ProjectLayout() {
       return
     }
 
-    getProject(projectId).then((result) => {
-      if (cancelled) return
-      setProject(result)
-      setIsLoading(false)
-      if (!result && !isAuthenticated) {
-        navigate('/projects', { replace: true })
-      }
-    })
+    getProject(projectId)
+      .catch(() => undefined)
+      .then((result) => {
+        if (cancelled) return
+        setProject(result)
+        setIsLoading(false)
+        if (!result && !isAuthenticated) {
+          navigate('/projects', { replace: true })
+        }
+      })
 
     return () => {
       cancelled = true
@@ -57,6 +59,14 @@ export function ProjectLayout() {
   }, [projectId, isAuthenticated, navigate])
 
   const handleSelectEvidence = useCallback((selected: Evidence) => setEvidence(selected), [])
+
+  const refreshProject = useCallback(() => {
+    getProject(projectId)
+      .then((result) => {
+        if (result) setProject(result)
+      })
+      .catch(() => undefined)
+  }, [projectId])
 
   if (isLoading) {
     return (
@@ -80,6 +90,7 @@ export function ProjectLayout() {
   const context: ProjectOutletContext = {
     project,
     openEvidence: handleSelectEvidence,
+    refreshProject,
   }
 
   const meta = `${project.documentCount} documents · ${project.interviewCount} interviews · ${project.focusGroupCount} focus groups`
@@ -111,7 +122,7 @@ export function ProjectLayout() {
                   </Badge>
                 )}
               </div>
-<p className="mt-1 text-[0.76rem] text-ink-500">{meta}</p>
+              <p className="mt-1 text-[0.76rem] text-ink-500">{meta}</p>
             </div>
           </div>
 

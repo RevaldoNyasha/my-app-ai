@@ -252,7 +252,9 @@ export function DataTable({
                         {document.name}
                       </p>
                       <p className="text-[0.7rem] text-ink-400">
-                        {document.fileSize} · {document.language}
+                        {document.language
+                          ? `${document.fileSize} · ${document.language}`
+                          : document.fileSize}
                       </p>
                     </div>
                   </div>

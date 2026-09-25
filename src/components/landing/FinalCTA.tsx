@@ -46,7 +46,7 @@ export function FinalCTA() {
               aria-hidden="true"
             />
             <Link
-              to="/projects/healthcare-access/chat"
+              to="/projects"
               className="group inline-flex h-13 items-center gap-2.5 rounded-xl bg-white px-8 text-[1.02rem] font-semibold text-[#060707] shadow-[0_0_40px_-10px_rgba(255,255,255,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-200 hover:shadow-[0_0_56px_-12px_rgba(255,255,255,0.65)]"
             >
               Start researching

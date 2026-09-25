@@ -45,10 +45,14 @@ export interface ResearchDocument {
   /** Human readable file type, e.g. "Interview". */
   type: string
   extension: string
+  /** Pre-formatted display string, e.g. "2.4 MB". */
   fileSize: string
+  /** Exact size in bytes; only present on documents from the backend. */
+  fileSizeBytes?: number
   status: DocumentStatus
   participantCount: number
-  language: string
+  /** Detected language; `null` until the backend processes the file. */
+  language: string | null
   uploadedAt: string
   updatedAt: string
 }

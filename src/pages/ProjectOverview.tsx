@@ -14,12 +14,8 @@ import {
 } from '@/components/ui/icons'
 import { formatRelativeTime } from '@/lib/format'
 import { useAuth } from '@/auth/AuthContext'
-import {
-  listConversations,
-  listDocuments,
-  listReports,
-  listThemes,
-} from '@/services/researchService'
+import { listConversations, listReports, listThemes } from '@/services/researchService'
+import { listDocuments } from '@/services/documentService'
 import type {
   Conversation,
   ResearchDocument,
@@ -40,7 +36,7 @@ export function ProjectOverview() {
 
     Promise.all([
       listThemes(project.id),
-      listDocuments(project.id),
+      listDocuments(project.id).catch(() => []),
       listReports(project.id),
       listConversations(project.id),
     ]).then(([themesResult, documentsResult, reportsResult, conversationsResult]) => {
@@ -91,7 +87,9 @@ export function ProjectOverview() {
             <h2 className="font-serif text-[1.1rem] font-semibold tracking-tight text-ink-900">
               About this project
             </h2>
-            <p className="mt-2 text-[0.88rem] leading-7 text-ink-600">{project.description}</p>
+            <p className="mt-2 text-[0.88rem] leading-7 text-ink-600">
+              {project.description || 'New research project. Upload data to begin analysis.'}
+            </p>
 
             <div className="mt-4 flex flex-wrap gap-1.5">
               {project.themes.map((theme) => (

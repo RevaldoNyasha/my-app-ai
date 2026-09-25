@@ -14,7 +14,7 @@ export function NotFound() {
           The page you are looking for does not exist in this prototype.
         </p>
         <Link
-          to="/projects/healthcare-access/chat"
+          to="/projects"
           className="mt-5 inline-flex h-10 items-center rounded-xl bg-ink-100 px-4 text-[0.84rem] font-medium text-ink-800 transition-colors hover:bg-ink-200"
         >
           Open assistant

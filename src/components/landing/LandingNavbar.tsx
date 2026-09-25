@@ -37,7 +37,7 @@ export function LandingNavbar() {
 
         <div className="ml-auto hidden items-center gap-2.5 lg:flex">
           <Link
-            to="/projects/healthcare-access/chat"
+            to="/projects"
             className="group inline-flex h-9.5 items-center gap-2 rounded-xl bg-white px-4 text-[0.9rem] font-semibold text-[#060707] shadow-[0_0_22px_-8px_rgba(255,255,255,0.45)] transition-all duration-200 hover:-translate-y-px hover:bg-slate-200"
           >
             Get started
@@ -60,7 +60,7 @@ export function LandingNavbar() {
         <div className="border-t border-white/[0.06] bg-[#060707]/95 backdrop-blur-xl lg:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col px-5 py-4 sm:px-8" aria-label="Account">
             <Link
-              to="/projects/healthcare-access/chat"
+              to="/projects"
               onClick={() => setOpen(false)}
               className="mt-2.5 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[0.92rem] font-semibold text-[#060707]"
             >

@@ -68,7 +68,7 @@ export function Header({ collapsed, onToggleSidebar, onOpenMobileSidebar }: Head
         </button>
 
         <Link
-          to="/projects/healthcare-access/chat"
+          to="/projects"
           className="hidden h-8 items-center rounded-xl border border-ink-200 bg-surface px-3 text-[0.8rem] font-medium text-ink-700 transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 sm:inline-flex"
         >
           Open assistant

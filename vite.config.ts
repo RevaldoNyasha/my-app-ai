@@ -10,4 +10,10 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    // Forward API calls to the FastAPI backend in development (see src/lib/api.ts).
+    proxy: {
+      '/api': 'http://127.0.0.1:8000',
+    },
+  },
 })

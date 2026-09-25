@@ -1,4 +1,4 @@
-import type { Conversation, Participant, ResearchProject } from '@/types/research'
+import type { Participant, ResearchProject } from '@/types/research'
 
 export const projects: ResearchProject[] = [
   {
@@ -102,49 +102,6 @@ export const projects: ResearchProject[] = [
     status: 'archived',
     createdAt: '2025-11-03T08:00:00.000Z',
     updatedAt: '2026-07-28T09:00:00.000Z',
-  },
-]
-
-export const conversations: Conversation[] = [
-  {
-    id: 'conv-healthcare-barriers',
-    projectId: 'healthcare-access',
-    title: 'Healthcare Barriers Analysis',
-    preview: 'What are the major barriers affecting access to healthcare?',
-    updatedAt: '2026-09-17T09:20:00.000Z',
-    messageCount: 6,
-  },
-  {
-    id: 'conv-youth-healthcare',
-    projectId: 'healthcare-access',
-    title: 'Youth Healthcare Study',
-    preview: 'How do young people describe their first clinic visit?',
-    updatedAt: '2026-09-16T15:42:00.000Z',
-    messageCount: 4,
-  },
-  {
-    id: 'conv-community-health',
-    projectId: 'community-development',
-    title: 'Community Health Interviews',
-    preview: 'Summarise the community health priorities raised.',
-    updatedAt: '2026-09-15T11:08:00.000Z',
-    messageCount: 8,
-  },
-  {
-    id: 'conv-maternal-health',
-    projectId: 'maternal-health',
-    title: 'Maternal Healthcare Study',
-    preview: 'Compare antenatal experiences across districts.',
-    updatedAt: '2026-09-12T08:26:00.000Z',
-    messageCount: 5,
-  },
-  {
-    id: 'conv-rural-access',
-    projectId: 'rural-education',
-    title: 'Rural Healthcare Access',
-    preview: 'Show evidence linking transport costs to missed appointments.',
-    updatedAt: '2026-09-10T17:55:00.000Z',
-    messageCount: 3,
   },
 ]
 

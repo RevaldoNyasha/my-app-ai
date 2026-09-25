@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/auth/AuthContext'
+import { useToast } from '@/hooks/useToast'
+import { ApiError } from '@/lib/api'
 
 function GoogleIcon({ className = 'size-4' }: { className?: string }) {
   return (
@@ -37,39 +39,108 @@ function GithubIcon({ className = 'size-4' }: { className?: string }) {
   )
 }
 
+type Mode = 'login' | 'register'
+
+const MIN_PASSWORD_LENGTH = 8
+
+const inputClass =
+  'h-10 w-full rounded-xl border border-ink-200 bg-surface px-3 text-[0.86rem] text-ink-800 outline-none transition-colors placeholder:text-ink-400 focus:border-brand-400'
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null
+  return <span className="mt-1 block text-[0.72rem] text-red-600">{message}</span>
+}
+
 export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
-  const { login } = useAuth()
+  const { login, register } = useAuth()
+  const { comingSoon } = useToast()
+  const [mode, setMode] = useState<Mode>('login')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [organization, setOrganization] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  const completeLogin = (displayName: string, displayEmail: string) => {
-    login(displayName, displayEmail)
-    onSuccess?.()
+  const isRegister = mode === 'register'
+
+  const switchMode = (next: Mode) => {
+    setMode(next)
+    setError(null)
+    setFieldErrors({})
   }
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    const trimmedName = name.trim()
-    const trimmedEmail = email.trim()
-    if (!trimmedName || !trimmedEmail) return
-    completeLogin(trimmedName, trimmedEmail)
+    if (!canSubmit) return
+    setSubmitting(true)
+    setError(null)
+    setFieldErrors({})
+
+    try {
+      if (isRegister) {
+        await register({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+          organization: organization.trim() || undefined,
+        })
+      } else {
+        await login({ email: email.trim(), password })
+      }
+      setPassword('')
+      onSuccess?.()
+    } catch (caught) {
+      if (caught instanceof ApiError) {
+        setError(caught.message)
+        setFieldErrors(caught.fieldErrors)
+      } else {
+        setError('Something went wrong. Please try again.')
+      }
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  const canSubmit = name.trim().length > 0 && email.trim().length > 0
+  const canSubmit =
+    email.trim().length > 0 &&
+    (isRegister
+      ? name.trim().length > 0 && password.length >= MIN_PASSWORD_LENGTH
+      : password.length > 0)
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} noValidate>
+      <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-canvas p-1 text-[0.8rem] font-medium">
+        {(['login', 'register'] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => switchMode(option)}
+            aria-pressed={mode === option}
+            className={`h-8 rounded-lg transition-colors ${
+              mode === option ? 'bg-surface text-ink-800 shadow-sm' : 'text-ink-500 hover:text-ink-700'
+            }`}
+          >
+            {option === 'login' ? 'Sign in' : 'Create account'}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-4">
-        <label className="block">
-          <span className="mb-1.5 block text-[0.78rem] font-medium text-ink-700">Name</span>
-          <input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. Dr. T. Moyo"
-            autoComplete="name"
-            className="h-10 w-full rounded-xl border border-ink-200 bg-surface px-3 text-[0.86rem] text-ink-800 outline-none transition-colors placeholder:text-ink-400 focus:border-brand-400"
-          />
-        </label>
+        {isRegister && (
+          <label className="block">
+            <span className="mb-1.5 block text-[0.78rem] font-medium text-ink-700">Name</span>
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="e.g. Dr. T. Moyo"
+              autoComplete="name"
+              className={inputClass}
+            />
+            <FieldError message={fieldErrors.name} />
+          </label>
+        )}
 
         <label className="block">
           <span className="mb-1.5 block text-[0.78rem] font-medium text-ink-700">Email</span>
@@ -79,13 +150,49 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
             type="email"
             placeholder="you@researchmind.ai"
             autoComplete="email"
-            className="h-10 w-full rounded-xl border border-ink-200 bg-surface px-3 text-[0.86rem] text-ink-800 outline-none transition-colors placeholder:text-ink-400 focus:border-brand-400"
+            className={inputClass}
           />
+          <FieldError message={fieldErrors.email} />
         </label>
+
+        <label className="block">
+          <span className="mb-1.5 block text-[0.78rem] font-medium text-ink-700">Password</span>
+          <input
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            type="password"
+            placeholder={isRegister ? `At least ${MIN_PASSWORD_LENGTH} characters` : '••••••••'}
+            autoComplete={isRegister ? 'new-password' : 'current-password'}
+            className={inputClass}
+          />
+          <FieldError message={fieldErrors.password} />
+        </label>
+
+        {isRegister && (
+          <label className="block">
+            <span className="mb-1.5 block text-[0.78rem] font-medium text-ink-700">
+              Organization <span className="font-normal text-ink-400">(optional)</span>
+            </span>
+            <input
+              value={organization}
+              onChange={(event) => setOrganization(event.target.value)}
+              placeholder="e.g. University of Zimbabwe"
+              autoComplete="organization"
+              className={inputClass}
+            />
+            <FieldError message={fieldErrors.organization} />
+          </label>
+        )}
       </div>
 
-      <Button type="submit" size="lg" disabled={!canSubmit} className="mt-5 w-full">
-        Continue
+      {error && (
+        <p role="alert" className="mt-4 rounded-xl bg-red-50 px-3 py-2.5 text-[0.76rem] text-red-700">
+          {error}
+        </p>
+      )}
+
+      <Button type="submit" size="lg" disabled={!canSubmit || submitting} className="mt-5 w-full">
+        {submitting ? 'Please wait…' : isRegister ? 'Create account' : 'Sign in'}
       </Button>
 
       <div className="my-5 flex items-center gap-3 text-[0.7rem] font-medium uppercase tracking-[0.16em] text-ink-400">
@@ -97,25 +204,21 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
       <div className="grid grid-cols-2 gap-3">
         <button
           type="button"
-          onClick={() => completeLogin('Google User', 'google.user@researchmind.ai')}
+          onClick={() => comingSoon('Sign in with Google')}
           className="flex h-10 items-center justify-center gap-2 rounded-xl border border-ink-200 bg-surface px-2 text-[0.82rem] font-medium text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
         >
           <GoogleIcon />
-          Sign up with Google
+          Sign in with Google
         </button>
         <button
           type="button"
-          onClick={() => completeLogin('GitHub User', 'github.user@researchmind.ai')}
+          onClick={() => comingSoon('Sign in with GitHub')}
           className="flex h-10 items-center justify-center gap-2 rounded-xl border border-ink-200 bg-surface px-2 text-[0.82rem] font-medium text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
         >
           <GithubIcon />
-          Sign up with GitHub
+          Sign in with GitHub
         </button>
       </div>
-
-      <p className="mt-4 rounded-xl bg-canvas px-3 py-2.5 text-[0.72rem] leading-5 text-ink-500">
-        This is a prototype — any name and email work. No real account is created.
-      </p>
     </form>
   )
 }
