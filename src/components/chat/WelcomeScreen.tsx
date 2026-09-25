@@ -1,13 +1,14 @@
 import { ArrowRightIcon, SparkleIcon } from '@/components/ui/icons'
 
+/** Project-agnostic starter questions; they work for any research topic. */
 const PROMPTS = [
   {
     label: 'Find themes',
-    prompt: 'What are the major barriers affecting access to healthcare among young people?',
+    prompt: 'What are the main themes that come up across the data in this project?',
   },
   {
     label: 'Find evidence',
-    prompt: 'Show me evidence supporting the claim that cost affects healthcare access.',
+    prompt: 'Show me the strongest quotes and evidence that support the key findings.',
   },
 ]
 

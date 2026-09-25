@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { PageContainer, PageHeading } from '@/components/layout/PageContainer'
 import { ProjectCard } from '@/components/research/ProjectCard'
 import { Button } from '@/components/ui/Button'
@@ -26,6 +27,15 @@ export function Projects() {
   const [createError, setCreateError] = useState<string | null>(null)
   const [projectToDelete, setProjectToDelete] = useState<ResearchProject | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Opened from the sidebar's "New Project" button via `/projects?new=1`.
+  useEffect(() => {
+    if (!searchParams.has('new')) return
+    setSearchParams({}, { replace: true })
+    if (isAuthenticated) setIsCreateOpen(true)
+    else openLogin()
+  }, [searchParams, setSearchParams, isAuthenticated, openLogin])
 
   useEffect(() => {
     let cancelled = false

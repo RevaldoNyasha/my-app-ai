@@ -69,6 +69,8 @@ interface RequestOptions {
   body?: unknown
   /** Attach the stored bearer token. Defaults to true. */
   auth?: boolean
+  /** Use this token instead of the stored one (e.g. while the session is being cleared). */
+  token?: string
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -79,7 +81,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const isForm = body instanceof FormData
   if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
 
-  const token = auth ? getToken() : null
+  const token = auth ? (options.token ?? getToken()) : null
   if (token) headers.Authorization = `Bearer ${token}`
 
   let response: Response

@@ -2,6 +2,11 @@ import { ApiError, apiRequest } from '@/lib/api'
 import { isAuthenticated } from '@/auth/session'
 import type { ResearchProject } from '@/types/research'
 
+/** Dispatched on `window` after a project is created or deleted, so lists can refresh. */
+export const PROJECTS_CHANGED_EVENT = 'researchmind:projects-changed'
+
+const announceChange = () => window.dispatchEvent(new Event(PROJECTS_CHANGED_EVENT))
+
 export interface CreateProjectPayload {
   name: string
   description?: string
@@ -25,11 +30,14 @@ export async function getProject(projectId?: string): Promise<ResearchProject | 
 }
 
 /** `POST /projects` */
-export function createProject(payload: CreateProjectPayload): Promise<ResearchProject> {
-  return apiRequest<ResearchProject>('/projects', { method: 'POST', body: payload })
+export async function createProject(payload: CreateProjectPayload): Promise<ResearchProject> {
+  const project = await apiRequest<ResearchProject>('/projects', { method: 'POST', body: payload })
+  announceChange()
+  return project
 }
 
 /** `DELETE /projects/{id}` — permanent; removes the project's documents too. */
-export function deleteProject(projectId: string): Promise<void> {
-  return apiRequest<void>(`/projects/${encodeURIComponent(projectId)}`, { method: 'DELETE' })
+export async function deleteProject(projectId: string): Promise<void> {
+  await apiRequest<void>(`/projects/${encodeURIComponent(projectId)}`, { method: 'DELETE' })
+  announceChange()
 }

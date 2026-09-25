@@ -12,6 +12,7 @@ import { AnalysisPage } from '@/pages/Analysis'
 import { ReportsPage } from '@/pages/Reports'
 import { Settings } from '@/pages/Settings'
 import { SubscriptionPage } from '@/pages/Subscription'
+import { HelpPage } from '@/pages/Help'
 import { NotFound } from '@/pages/NotFound'
 
 function ProjectDataRoute() {
@@ -46,6 +47,7 @@ export default function App() {
             </Route>
             <Route path="settings" element={<Settings />} />
             <Route path="subscription" element={<SubscriptionPage />} />
+            <Route path="help" element={<HelpPage />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

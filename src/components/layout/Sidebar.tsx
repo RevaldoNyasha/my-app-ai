@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   CardIcon,
-  ChatIcon,
   CloseIcon,
   FolderIcon,
   HelpIcon,
@@ -14,11 +13,12 @@ import {
   SparkleIcon,
   UserIcon,
 } from '@/components/ui/icons'
-import { listConversations } from '@/services/researchService'
-import { useToast } from '@/hooks/useToast'
+import { PROJECTS_CHANGED_EVENT, listProjects } from '@/services/projectService'
 import { useAuth } from '@/auth/AuthContext'
-import type { Conversation } from '@/types/research'
+import type { ResearchProject } from '@/types/research'
 import { formatRelativeTime, initials } from '@/lib/format'
+
+const RECENT_PROJECT_LIMIT = 8
 
 const NAV_ITEMS = [
   { to: '/projects', label: 'Research Projects', icon: FolderIcon, end: false },
@@ -39,9 +39,8 @@ export function Sidebar({
 }: SidebarProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { comingSoon } = useToast()
   const { user, logout, openLogin, isAuthenticated } = useAuth()
-  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [recentProjects, setRecentProjects] = useState<ResearchProject[]>([])
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   const displayName = user?.name ?? 'Dr. T. Moyo'
@@ -55,30 +54,41 @@ export function Sidebar({
 
   const projectMatch = /^\/projects\/([^/]+)/.exec(location.pathname)
   const activeProjectId = projectMatch?.[1]
-  const activeConversationId = new URLSearchParams(location.search).get('conversation')
 
+  // Re-fetch on navigation and whenever a project is created or deleted.
   useEffect(() => {
     let cancelled = false
-    listConversations().then((result) => {
-      if (!cancelled) setConversations(result)
-    })
+    const load = () => {
+      listProjects()
+        .then((result) => {
+          if (!cancelled) setRecentProjects(result.slice(0, RECENT_PROJECT_LIMIT))
+        })
+        .catch(() => undefined)
+    }
+    load()
+    window.addEventListener(PROJECTS_CHANGED_EVENT, load)
     return () => {
       cancelled = true
+      window.removeEventListener(PROJECTS_CHANGED_EVENT, load)
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, location.pathname])
 
-  const handleNewChat = () => {
-    // Chat is project-scoped; outside a project, send the user to pick one.
-    navigate(activeProjectId ? `/projects/${activeProjectId}/chat?new=${Date.now()}` : '/projects')
+  const handleNewProject = () => {
     onCloseMobile()
+    if (!isAuthenticated) {
+      openLogin()
+      return
+    }
+    // The Projects page opens its create modal when it sees `?new`.
+    navigate('/projects?new=1')
   }
 
   const isIconOnly = collapsed && !mobileOpen
 
   const itemClass = ({ isActive }: { isActive: boolean }) =>
     [
-      'group flex items-center gap-3 rounded-xl px-3 py-2 text-[0.84rem] font-medium transition-colors',
-      isIconOnly ? 'justify-center px-0' : '',
+      'group flex items-center rounded-xl text-[0.84rem] font-medium transition-colors',
+      isIconOnly ? 'mx-auto size-10 justify-center' : 'gap-3 px-3 py-2',
       isActive
         ? 'bg-ink-100 text-ink-900'
         : 'text-ink-600 hover:bg-ink-100/70 hover:text-ink-900',
@@ -103,30 +113,44 @@ export function Sidebar({
         ].join(' ')}
       >
         <div
-          className={`flex h-14 items-center border-b border-ink-100 ${isIconOnly ? 'px-1.5' : 'gap-2.5 px-3'}`}
+          className={`flex h-14 shrink-0 items-center border-b border-ink-100 ${isIconOnly ? 'justify-center' : 'gap-2.5 px-3'}`}
         >
-          <div
-            className={`flex min-w-0 items-center ${isIconOnly ? 'flex-1 justify-center' : 'flex-1 gap-2.5'}`}
-          >
-            <SparkleIcon className="size-4.5 shrink-0 text-ink-800" />
-            {!isIconOnly ? (
-              <div className="min-w-0">
-                <p className="truncate text-[0.86rem] font-semibold tracking-tight text-ink-900">
-                  ResearchMind AI
-                </p>
-                <p className="truncate text-[0.68rem] text-ink-400">Qualitative research assistant</p>
+          {isIconOnly ? (
+            // Collapsed: the logo doubles as the expand button (icon swaps on hover).
+            <button
+              type="button"
+              onClick={onToggleCollapsed}
+              aria-label="Expand sidebar"
+              title="Expand sidebar"
+              className="group flex size-10 items-center justify-center rounded-xl text-ink-800 transition-colors hover:bg-ink-100"
+            >
+              <SparkleIcon className="size-4.5 group-hover:hidden" />
+              <PanelIcon className="hidden size-4.5 text-ink-600 group-hover:block" />
+            </button>
+          ) : (
+            <>
+              <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                <SparkleIcon className="size-4.5 shrink-0 text-ink-800" />
+                <div className="min-w-0">
+                  <p className="truncate whitespace-nowrap text-[0.86rem] font-semibold tracking-tight text-ink-900">
+                    ResearchMind AI
+                  </p>
+                  <p className="truncate whitespace-nowrap text-[0.68rem] text-ink-400">
+                    Qualitative research assistant
+                  </p>
+                </div>
               </div>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            onClick={onToggleCollapsed}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="hidden shrink-0 rounded-lg p-1.5 text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-700 lg:inline-flex"
-          >
-            {collapsed ? <PanelIcon className="size-4.5" /> : <PanelLeftIcon className="size-4.5" />}
-          </button>
+              <button
+                type="button"
+                onClick={onToggleCollapsed}
+                aria-label="Collapse sidebar"
+                title="Collapse sidebar"
+                className="hidden shrink-0 rounded-lg p-1.5 text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-700 lg:inline-flex"
+              >
+                <PanelLeftIcon className="size-4.5" />
+              </button>
+            </>
+          )}
           <button
             type="button"
             onClick={onCloseMobile}
@@ -140,14 +164,16 @@ export function Sidebar({
         <div className={isIconOnly ? 'px-2 pt-3' : 'px-3 pt-3'}>
           <button
             type="button"
-            onClick={handleNewChat}
-            title="New Chat"
-            className={`flex w-full items-center gap-2.5 rounded-xl border border-ink-200 bg-surface px-3 py-2.5 text-[0.84rem] font-medium text-ink-800 shadow-sm transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 ${
-              isIconOnly ? 'justify-center px-0' : ''
-            }`}
+            onClick={handleNewProject}
+            title="New Project"
+            aria-label="New Project"
+            className={[
+              'flex items-center rounded-xl border border-ink-200 bg-surface text-[0.84rem] font-medium text-ink-800 shadow-sm transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700',
+              isIconOnly ? 'mx-auto size-10 justify-center' : 'w-full gap-2.5 px-3 py-2.5',
+            ].join(' ')}
           >
             <PlusIcon className="size-4 shrink-0" />
-            {!isIconOnly ? <span>New Chat</span> : null}
+            {!isIconOnly ? <span className="truncate whitespace-nowrap">New Project</span> : null}
           </button>
         </div>
 
@@ -162,7 +188,7 @@ export function Sidebar({
               onClick={onCloseMobile}
             >
               <item.icon className="size-4.5 shrink-0" />
-              {!isIconOnly ? <span className="truncate">{item.label}</span> : null}
+              {!isIconOnly ? <span className="truncate whitespace-nowrap">{item.label}</span> : null}
             </NavLink>
           ))}
         </nav>
@@ -170,24 +196,23 @@ export function Sidebar({
         {!isIconOnly ? (
           <div className="mt-6 flex min-h-0 flex-1 flex-col px-3">
             <p className="px-3 pb-2 text-[0.68rem] font-semibold uppercase tracking-[0.09em] text-ink-400">
-              Recent Chats
+              Recent Projects
             </p>
             <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto pb-2">
-              {conversations.length === 0 ? (
-                <p className="px-3 py-1 text-[0.76rem] text-ink-400">No chats yet</p>
+              {recentProjects.length === 0 ? (
+                <p className="px-3 py-1 text-[0.76rem] text-ink-400">No projects yet</p>
               ) : null}
-              {conversations.map((conversation) => {
-                const isActive = activeConversationId === conversation.id
+              {recentProjects.map((project) => {
+                const isActive = activeProjectId === project.id
                 return (
                   <button
-                    key={conversation.id}
+                    key={project.id}
                     type="button"
                     onClick={() => {
-                      navigate(
-                        `/projects/${conversation.projectId}/chat?conversation=${conversation.id}`,
-                      )
+                      navigate(`/projects/${project.id}`)
                       onCloseMobile()
                     }}
+                    aria-current={isActive ? 'page' : undefined}
                     className={[
                       'flex w-full items-start gap-2.5 rounded-xl px-3 py-2 text-left transition-colors',
                       isActive
@@ -195,13 +220,16 @@ export function Sidebar({
                         : 'text-ink-600 hover:bg-ink-100/70 hover:text-ink-900',
                     ].join(' ')}
                   >
-                    <ChatIcon className="mt-0.5 size-4 shrink-0 opacity-70" />
+                    <FolderIcon className="mt-0.5 size-4 shrink-0 opacity-70" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[0.82rem] font-medium">
-                        {conversation.title}
+                        {project.name}
                       </span>
                       <span className="mt-0.5 flex items-center gap-1.5 text-[0.7rem] text-ink-400">
-                        <span className="truncate">{formatRelativeTime(conversation.updatedAt)}</span>
+                        <span className="truncate">
+                          {project.documentCount} {project.documentCount === 1 ? 'file' : 'files'} ·{' '}
+                          {formatRelativeTime(project.updatedAt)}
+                        </span>
                       </span>
                     </span>
                   </button>
@@ -210,7 +238,30 @@ export function Sidebar({
             </div>
           </div>
         ) : (
-          <div className="flex-1" />
+          // Collapsed: recent projects as initials badges, name on hover.
+          <div className="mt-4 flex min-h-0 flex-1 flex-col items-center gap-1 overflow-y-auto border-t border-ink-100 px-2 pb-2 pt-3">
+            {recentProjects.map((project) => {
+              const isActive = activeProjectId === project.id
+              return (
+                <button
+                  key={project.id}
+                  type="button"
+                  onClick={() => navigate(`/projects/${project.id}`)}
+                  title={project.name}
+                  aria-label={project.name}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={[
+                    'flex size-10 shrink-0 items-center justify-center rounded-xl text-[0.7rem] font-semibold transition-colors',
+                    isActive
+                      ? 'bg-brand-50 text-brand-800'
+                      : 'text-ink-500 hover:bg-ink-100/70 hover:text-ink-900',
+                  ].join(' ')}
+                >
+                  {initials(project.name)}
+                </button>
+              )
+            })}
+          </div>
         )}
 
         <div className={`relative border-t border-ink-100 p-3 ${isIconOnly ? 'px-2' : ''}`} dir="ltr">
@@ -253,7 +304,7 @@ export function Sidebar({
                     aria-label="Account"
                     className={[
                       'absolute bottom-full z-20 mb-1.5 w-56 origin-bottom-right overflow-hidden rounded-xl border border-ink-200 bg-surface py-1 shadow-raised',
-                      isIconOnly ? 'left-1/2 right-0' : 'right-2',
+                      isIconOnly ? 'left-2' : 'right-2',
                     ].join(' ')}
                   >
                     <div className="border-b border-ink-100 px-3 py-2.5">
@@ -291,7 +342,8 @@ export function Sidebar({
                       role="menuitem"
                       onClick={() => {
                         setUserMenuOpen(false)
-                        comingSoon('The help centre')
+                        navigate('/help')
+                        onCloseMobile()
                       }}
                       className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
                     >
@@ -319,7 +371,7 @@ export function Sidebar({
               aria-label="Log in"
               className={[
                 'flex items-center justify-center gap-2 rounded-xl border border-ink-200 bg-surface font-medium text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50',
-                isIconOnly ? 'size-9' : 'w-full px-3 py-2.5 text-[0.84rem]',
+                isIconOnly ? 'mx-auto size-10' : 'w-full px-3 py-2.5 text-[0.84rem]',
               ].join(' ')}
             >
               <UserIcon className="size-4 shrink-0 text-ink-400" />

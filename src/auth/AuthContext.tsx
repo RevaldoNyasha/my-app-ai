@@ -1,7 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { ApiError, TOKEN_KEY, UNAUTHORIZED_EVENT, getToken } from '@/lib/api'
-import { fetchCurrentUser, loginRequest, registerRequest } from '@/services/authService'
+import {
+  fetchCurrentUser,
+  loginRequest,
+  logoutRequest,
+  registerRequest,
+} from '@/services/authService'
 import type { AuthSession, AuthUser, LoginPayload, RegisterPayload } from '@/types/auth'
 
 interface AuthContextValue {
@@ -68,11 +73,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setExpiresAt(nextExpiresAt)
   }, [])
 
-  const logout = useCallback(() => {
+  /** Forget the session locally, e.g. when the server already rejected the token. */
+  const clearSession = useCallback(() => {
     clearStoredSession()
     setUser(null)
     setExpiresAt(null)
   }, [])
+
+  /** User-initiated sign out: revoke the token on the server, then forget it here. */
+  const logout = useCallback(() => {
+    const token = getToken()
+    clearSession()
+    localStorage.removeItem(USAGE_KEY)
+    setUsageCount(0)
+    // Fire and forget: the local session is already gone even if this fails.
+    if (token) logoutRequest(token).catch(() => undefined)
+  }, [clearSession])
 
   const login = useCallback(
     async (payload: LoginPayload) => startSession(await loginRequest(payload)),
@@ -98,36 +114,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(current)
       })
       .catch((error: unknown) => {
-        if (!cancelled && error instanceof ApiError && error.status === 401) logout()
+        if (!cancelled && error instanceof ApiError && error.status === 401) clearSession()
       })
     return () => {
       cancelled = true
     }
-  }, [logout])
+  }, [clearSession])
 
   // Any authenticated request rejected with 401 means the session is gone.
   useEffect(() => {
     const handleUnauthorized = () => {
       if (!localStorage.getItem(TOKEN_KEY)) return
-      logout()
+      clearSession()
       setLoginOpen(true)
     }
     window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized)
     return () => window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized)
-  }, [logout])
+  }, [clearSession])
 
   // There is no refresh token yet, so sign out when the access token expires.
   useEffect(() => {
     if (expiresAt === null) return
     const timer = window.setTimeout(
       () => {
-        logout()
+        clearSession()
         setLoginOpen(true)
       },
       Math.max(0, expiresAt - Date.now()),
     )
     return () => window.clearTimeout(timer)
-  }, [expiresAt, logout])
+  }, [expiresAt, clearSession])
 
   const recordUsage = useCallback(() => {
     setUsageCount((previous) => {
