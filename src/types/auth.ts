@@ -18,6 +18,14 @@ export interface AuthSession {
   expiresIn: number
 }
 
+export type OAuthProvider = 'google' | 'github'
+
+/** Returned by `POST /auth/oauth/{provider}`. */
+export interface OAuthStart {
+  authorizationUrl: string
+  state: string
+}
+
 export interface LoginPayload {
   email: string
   password: string

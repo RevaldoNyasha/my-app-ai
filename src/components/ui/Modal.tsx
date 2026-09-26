@@ -8,9 +8,21 @@ interface ModalProps {
   description?: string
   children: ReactNode
   footer?: ReactNode
+  /** Width: `md` for forms (default), `xl` for reading documents. */
+  size?: 'md' | 'xl'
 }
 
-export function Modal({ open, onClose, title, description, children, footer }: ModalProps) {
+const WIDTHS = { md: 'max-w-lg', xl: 'max-w-3xl' } as const
+
+export function Modal({
+  open,
+  onClose,
+  title,
+  description,
+  children,
+  footer,
+  size = 'md',
+}: ModalProps) {
   useEffect(() => {
     if (!open) {
       return
@@ -41,7 +53,7 @@ export function Modal({ open, onClose, title, description, children, footer }: M
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-ink-200 bg-surface shadow-raised sm:rounded-2xl"
+        className={`relative z-10 flex max-h-[90vh] w-full ${WIDTHS[size]} flex-col overflow-hidden rounded-t-2xl border border-ink-200 bg-surface shadow-raised sm:rounded-2xl`}
         style={{ animation: 'rise 200ms ease-out' }}
       >
         <header className="flex items-start justify-between gap-4 border-b border-ink-100 px-5 py-4">

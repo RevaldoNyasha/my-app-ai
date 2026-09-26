@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { PageContainer, PageHeading, SectionHeading } from '@/components/layout/PageContainer'
+import { ProjectAnalysisCard } from '@/components/research/ProjectAnalysisCard'
 import { ThemeCard } from '@/components/research/ThemeCard'
 import { ThemeRelationshipMap } from '@/components/research/ThemeRelationshipMap'
 import { Badge } from '@/components/ui/Badge'
@@ -59,6 +60,8 @@ export function AnalysisPage({ projectId }: AnalysisPageProps) {
         title="Qualitative Analysis"
         description="Themes are generated from your coded excerpts. Review, rename, merge or remove them — the researcher stays in control."
       />
+
+      {projectId ? <ProjectAnalysisCard projectId={projectId} /> : null}
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {[

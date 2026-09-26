@@ -2,8 +2,9 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/auth/AuthContext'
-import { useToast } from '@/hooks/useToast'
+import { beginOAuthSignIn } from '@/auth/oauth'
 import { ApiError } from '@/lib/api'
+import type { OAuthProvider } from '@/types/auth'
 
 function GoogleIcon({ className = 'size-4' }: { className?: string }) {
   return (
@@ -53,7 +54,6 @@ function FieldError({ message }: { message?: string }) {
 
 export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
   const { login, register } = useAuth()
-  const { comingSoon } = useToast()
   const [mode, setMode] = useState<Mode>('login')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -100,6 +100,19 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
       }
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const [redirecting, setRedirecting] = useState<OAuthProvider | null>(null)
+
+  const signInWith = async (provider: OAuthProvider) => {
+    setRedirecting(provider)
+    setError(null)
+    try {
+      await beginOAuthSignIn(provider) // leaves the page on success
+    } catch (caught) {
+      setError(caught instanceof ApiError ? caught.message : 'Something went wrong. Please try again.')
+      setRedirecting(null)
     }
   }
 
@@ -204,19 +217,21 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
       <div className="grid grid-cols-2 gap-3">
         <button
           type="button"
-          onClick={() => comingSoon('Sign in with Google')}
-          className="flex h-10 items-center justify-center gap-2 rounded-xl border border-ink-200 bg-surface px-2 text-[0.82rem] font-medium text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
+          onClick={() => void signInWith('google')}
+          disabled={redirecting !== null}
+          className="flex h-10 items-center justify-center gap-2 rounded-xl border border-ink-200 bg-surface px-2 text-[0.82rem] font-medium text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <GoogleIcon />
-          Sign in with Google
+          {redirecting === 'google' ? 'Opening Google…' : 'Sign in with Google'}
         </button>
         <button
           type="button"
-          onClick={() => comingSoon('Sign in with GitHub')}
-          className="flex h-10 items-center justify-center gap-2 rounded-xl border border-ink-200 bg-surface px-2 text-[0.82rem] font-medium text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
+          onClick={() => void signInWith('github')}
+          disabled={redirecting !== null}
+          className="flex h-10 items-center justify-center gap-2 rounded-xl border border-ink-200 bg-surface px-2 text-[0.82rem] font-medium text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <GithubIcon />
-          Sign in with GitHub
+          {redirecting === 'github' ? 'Opening GitHub…' : 'Sign in with GitHub'}
         </button>
       </div>
     </form>

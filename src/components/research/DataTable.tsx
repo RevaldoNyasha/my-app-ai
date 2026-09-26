@@ -8,6 +8,7 @@ import {
   ReportIcon,
   RetryIcon,
   SourceIcon,
+  SparkleIcon,
   TrashIcon,
 } from '@/components/ui/icons'
 import { useToast } from '@/hooks/useToast'
@@ -26,25 +27,47 @@ const STATUS_LABEL: Record<DocumentStatus, string> = {
   failed: 'Failed',
 }
 
-function StatusPill({ status }: { status: DocumentStatus }) {
+function StatusPill({ document }: { document: ResearchDocument }) {
+  const { status } = document
+
   if (status === 'processing') {
+    const isMedia = document.kind === 'audio' || document.kind === 'video'
     return (
-      <Badge tone="warning">
-        <span
-          className="size-1.5 rounded-full bg-amber-500"
-          style={{ animation: 'pulse-dot 1.4s ease-in-out infinite' }}
-        />
-        {STATUS_LABEL[status]}
-      </Badge>
+      <span className="inline-flex flex-col items-start gap-1">
+        <Badge tone="warning">
+          <span
+            className="size-1.5 rounded-full bg-amber-500"
+            style={{ animation: 'pulse-dot 1.4s ease-in-out infinite' }}
+          />
+          {STATUS_LABEL[status]}
+        </Badge>
+        {document.processingProgress || isMedia ? (
+          <span className="text-[0.7rem] tabular-nums text-ink-500">
+            {document.processingProgress ?? 'Waiting to transcribe'}
+          </span>
+        ) : null}
+      </span>
     )
   }
 
-  return (
+  const pill = (
     <Badge tone={STATUS_TONE[status]}>
       {status === 'failed' ? <ExclamationIcon className="size-3" /> : <Dot tone="success" />}
       {STATUS_LABEL[status]}
     </Badge>
   )
+
+  if (status === 'failed' && document.processingError) {
+    return (
+      <span className="inline-flex flex-col items-start gap-1" title={document.processingError}>
+        {pill}
+        <span className="max-w-56 truncate text-[0.7rem] text-red-600">
+          {document.processingError}
+        </span>
+      </span>
+    )
+  }
+  return pill
 }
 
 function TypeGlyph({ extension }: { extension: string }) {
@@ -59,24 +82,34 @@ function RowActions({
   document,
   onDelete,
   onRetry,
+  onSummary,
+  onTranscript,
 }: {
   document: ResearchDocument
   onDelete?: (document: ResearchDocument) => void
   onRetry?: (document: ResearchDocument) => void
+  onSummary?: (document: ResearchDocument) => void
+  onTranscript?: (document: ResearchDocument) => void
 }) {
   const { comingSoon, showToast } = useToast()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const [menuPos, setMenuPos] = useState<{ top?: number; bottom?: number; right: number }>()
-  const isAudio = document.kind === 'audio'
+  const isRecording = document.kind === 'audio' || document.kind === 'video'
   const isFailed = document.status === 'failed'
+  const isProcessed = document.status === 'processed'
 
   const close = () => setOpen(false)
+
+  const handleSummary = () => {
+    close()
+    onSummary?.(document)
+  }
 
   const toggleMenu = () => {
     if (!buttonRef.current) return
     const rect = buttonRef.current.getBoundingClientRect()
-    const menuHeight = isFailed ? 44 : 148
+    const menuHeight = isFailed ? 44 : onSummary ? 184 : 148
     const gap = 6
     const opensUp = rect.bottom + gap + menuHeight > window.innerHeight
     setMenuPos(
@@ -89,7 +122,7 @@ function RowActions({
 
   const handleTranscript = () => {
     close()
-    comingSoon('Generating a transcript')
+    onTranscript?.(document)
   }
 
   const handleRetry = () => {
@@ -150,12 +183,35 @@ function RowActions({
               </button>
             ) : (
               <>
+                {onSummary ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled={!isProcessed}
+                    onClick={handleSummary}
+                    title={
+                      isProcessed
+                        ? 'View or generate an AI summary'
+                        : 'Available once the document has been processed'
+                    }
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900 disabled:cursor-not-allowed disabled:text-ink-300 disabled:hover:bg-transparent disabled:hover:text-ink-300"
+                  >
+                    <SparkleIcon className="size-4 shrink-0 text-ink-400" />
+                    Summary
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   role="menuitem"
-                  disabled={!isAudio}
+                  disabled={!isRecording || !isProcessed || !onTranscript}
                   onClick={handleTranscript}
-                  title={isAudio ? 'Generate a transcript' : 'Transcripts are only available for audio files'}
+                  title={
+                    !isRecording
+                      ? 'Transcripts are only available for audio and video'
+                      : isProcessed
+                        ? 'Read the transcript with timestamps'
+                        : 'Available once the recording has been transcribed'
+                  }
                   className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900 disabled:cursor-not-allowed disabled:text-ink-300 disabled:hover:bg-transparent disabled:hover:text-ink-300"
                 >
                   <CaptionsIcon className="size-4 shrink-0 text-ink-400" />
@@ -198,6 +254,8 @@ interface DataTableProps {
   projectNames?: Record<string, string>
   onDelete?: (document: ResearchDocument) => void
   onRetry?: (document: ResearchDocument) => void
+  onSummary?: (document: ResearchDocument) => void
+  onTranscript?: (document: ResearchDocument) => void
 }
 
 export function DataTable({
@@ -206,6 +264,8 @@ export function DataTable({
   projectNames = {},
   onDelete,
   onRetry,
+  onSummary,
+  onTranscript,
 }: DataTableProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-200 bg-surface">
@@ -273,7 +333,7 @@ export function DataTable({
                   {document.participantCount || '—'}
                 </td>
                 <td className="px-4 py-3">
-                  <StatusPill status={document.status} />
+                  <StatusPill document={document} />
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="inline-flex items-center gap-1.5 text-[0.78rem] text-ink-500">
@@ -282,7 +342,13 @@ export function DataTable({
                   </span>
                 </td>
                 <td className="px-2 py-3 text-right">
-                  <RowActions document={document} onDelete={onDelete} onRetry={onRetry} />
+                  <RowActions
+                    document={document}
+                    onDelete={onDelete}
+                    onRetry={onRetry}
+                    onSummary={onSummary}
+                    onTranscript={onTranscript}
+                  />
                 </td>
               </tr>
             ))}

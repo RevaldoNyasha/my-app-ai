@@ -1,6 +1,7 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PageContainer, PageHeading, SectionHeading } from '@/components/layout/PageContainer'
+import { ProfileSection } from '@/components/settings/ProfileSection'
+import { SecuritySection } from '@/components/settings/SecuritySection'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import {
@@ -13,9 +14,12 @@ import {
   SunIcon,
   UserIcon,
 } from '@/components/ui/icons'
+import { useAuth } from '@/auth/AuthContext'
+import { usePreferences } from '@/hooks/usePreferences'
 import { useTheme } from '@/hooks/useTheme'
 import { useToast } from '@/hooks/useToast'
-import { initials } from '@/lib/format'
+import { ApiError } from '@/lib/api'
+import type { Preferences } from '@/services/userService'
 import type { ThemePreference } from '@/context/theme'
 
 const LANGUAGES = [
@@ -25,11 +29,19 @@ const LANGUAGES = [
 ]
 
 export function Settings() {
-  const [autoTranscribe, setAutoTranscribe] = useState(true)
-  const [autoTranslate, setAutoTranslate] = useState(false)
-  const [showEvidence, setShowEvidence] = useState(true)
+  const { user, openLogin } = useAuth()
+  const { preferences, update } = usePreferences()
   const { preference, resolved, setPreference } = useTheme()
-  const { comingSoon } = useToast()
+  const { showToast } = useToast()
+
+  const setToggle = (key: keyof Preferences, value: boolean) => {
+    update({ [key]: value }).catch((error: unknown) =>
+      showToast({
+        title: 'Could not save the setting',
+        description: error instanceof ApiError ? error.message : undefined,
+      }),
+    )
+  }
 
   const themeOptions: { value: ThemePreference; label: string; description: string; icon: typeof SunIcon }[] = [
     { value: 'light', label: 'Light', description: 'Bright workspace', icon: SunIcon },
@@ -37,24 +49,23 @@ export function Settings() {
     { value: 'system', label: 'System', description: 'Match your device', icon: MonitorIcon },
   ]
 
-  const toggles = [
+  const toggles: { key: keyof Preferences; label: string; description: string }[] = [
     {
-      label: 'Automatically transcribe uploads',
-      description: 'Send audio and video data for transcription as soon as it is uploaded.',
-      checked: autoTranscribe,
-      onChange: setAutoTranscribe,
-    },
-    {
-      label: 'Translate transcripts to English',
-      description: 'Keep original text alongside an English working translation.',
-      checked: autoTranslate,
-      onChange: setAutoTranslate,
-    },
-    {
+      key: 'showEvidence',
       label: 'Always show evidence citations',
-      description: 'Attach source excerpts to every assistant answer.',
-      checked: showEvidence,
-      onChange: setShowEvidence,
+      description: 'Show the Sources line (and its evidence quotes) under every assistant answer.',
+    },
+    {
+      key: 'autoTranscribe',
+      label: 'Automatically transcribe uploads',
+      description:
+        'Transcribe audio and video as soon as it is uploaded. Saved now; takes effect when audio transcription is added.',
+    },
+    {
+      key: 'autoTranslate',
+      label: 'Translate transcripts to English',
+      description:
+        'Keep original text alongside an English working translation. Saved now; takes effect with audio transcription.',
     },
   ]
 
@@ -107,26 +118,25 @@ export function Settings() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-ink-200 bg-surface p-5 sm:p-6">
-          <SectionHeading title="Researcher profile" />
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3.5">
-              <div className="flex size-12 items-center justify-center rounded-full bg-ink-800 text-sm font-semibold text-white dark:bg-ink-100 dark:text-ink-800">
-                {initials('Dr. T. Moyo')}
-              </div>
-              <div>
-                <p className="text-[0.92rem] font-semibold text-ink-900">Dr. T. Moyo</p>
-                <p className="flex items-center gap-1.5 text-[0.78rem] text-ink-500">
-                  <UserIcon className="size-3.5" />
-                  Lead Researcher · Healthcare Access Study
-                </p>
-              </div>
+        {user ? (
+          <>
+            <ProfileSection />
+            <SecuritySection />
+          </>
+        ) : (
+          <section className="rounded-2xl border border-ink-200 bg-surface p-5 sm:p-6">
+            <SectionHeading title="Researcher profile" />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="flex items-center gap-2 text-[0.84rem] text-ink-500">
+                <UserIcon className="size-4" />
+                Sign in to see and edit your profile and saved preferences.
+              </p>
+              <Button variant="outline" size="sm" onClick={openLogin}>
+                Log in
+              </Button>
             </div>
-            <Button variant="outline" size="sm" onClick={() => comingSoon('Profile editing')}>
-              Edit profile
-            </Button>
-          </div>
-        </section>
+          </section>
+        )}
 
         <section className="rounded-2xl border border-ink-200 bg-surface p-5 sm:p-6">
           <SectionHeading title="Plan & billing" />
@@ -152,7 +162,7 @@ export function Settings() {
           <div className="divide-y divide-ink-100">
             {toggles.map((toggle) => (
               <div
-                key={toggle.label}
+                key={toggle.key}
                 className="flex items-start justify-between gap-4 py-3.5 first:pt-0 last:pb-0"
               >
                 <div className="min-w-0">
@@ -164,21 +174,22 @@ export function Settings() {
                 <button
                   type="button"
                   role="switch"
-                  aria-checked={toggle.checked}
+                  aria-checked={preferences[toggle.key]}
                   aria-label={toggle.label}
-                  onClick={() => toggle.onChange(!toggle.checked)}
+                  disabled={!user}
+                  onClick={() => setToggle(toggle.key, !preferences[toggle.key])}
                   className={[
-                    'relative mt-0.5 h-5.5 w-10 shrink-0 rounded-full transition-colors',
-                    toggle.checked ? 'bg-brand-600' : 'bg-ink-200',
+                    'relative mt-0.5 h-5.5 w-10 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+                    preferences[toggle.key] ? 'bg-brand-600' : 'bg-ink-200',
                   ].join(' ')}
                 >
                   <span
                     className={[
                       'absolute top-0.5 flex size-4.5 items-center justify-center rounded-full bg-white shadow-sm transition-transform',
-                      toggle.checked ? 'translate-x-[1.35rem]' : 'translate-x-0.5',
+                      preferences[toggle.key] ? 'translate-x-[1.35rem]' : 'translate-x-0.5',
                     ].join(' ')}
                   >
-                    {toggle.checked ? (
+                    {preferences[toggle.key] ? (
                       <CheckIcon className="size-3 text-brand-700" />
                     ) : null}
                   </span>
@@ -209,12 +220,6 @@ export function Settings() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-dashed border-ink-200 bg-surface/60 p-5">
-          <p className="text-[0.8rem] leading-6 text-ink-500">
-            This is a frontend prototype. Accounts, data storage and AI processing are not yet
-            connected — all data shown is mock data held in the browser.
-          </p>
-        </section>
       </div>
     </PageContainer>
   )

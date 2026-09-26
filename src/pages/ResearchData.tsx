@@ -1,20 +1,43 @@
-import { useEffect, useMemo, useState, type DragEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { PageContainer, PageHeading } from '@/components/layout/PageContainer'
 import { DataTable } from '@/components/research/DataTable'
+import { SummaryModal } from '@/components/research/SummaryModal'
+import { TranscriptModal } from '@/components/research/TranscriptModal'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { FilterIcon, SearchIcon, UploadIcon } from '@/components/ui/icons'
 import { useToast } from '@/hooks/useToast'
 import { useAuth } from '@/auth/AuthContext'
 import { ApiError } from '@/lib/api'
-import { deleteDocument, listDocuments, uploadDocuments } from '@/services/documentService'
+import {
+  deleteDocument,
+  listDocuments,
+  reprocessDocument,
+  uploadDocuments,
+} from '@/services/documentService'
 import { listProjects } from '@/services/projectService'
 import type { ProjectOutletContext } from '@/hooks/useProjectContext'
 import type { ResearchDocument, ResearchProject } from '@/types/research'
 
-const ACCEPTED_EXTENSIONS = ['PDF', 'DOCX', 'CSV', 'MP3', 'WAV', 'MP4']
+// Must match the backend's accepted extensions (app/utils/file_validation.py).
+const ACCEPTED_EXTENSIONS = [
+  'PDF',
+  'DOCX',
+  'TXT',
+  'CSV',
+  'MP3',
+  'WAV',
+  'M4A',
+  'OGG',
+  'FLAC',
+  'WMA',
+  'MP4',
+  'MOV',
+  'WEBM',
+]
 const TYPE_FILTERS = ['All', 'Interview', 'Focus Group', 'Survey', 'Research Notes'] as const
+const POLL_INTERVAL_MS = 3000
 
 interface ResearchDataPageProps {
   projectId?: string
@@ -32,6 +55,7 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
   const { isAuthenticated, openLogin } = useAuth()
   // Present when rendered inside a project; used to refresh its header counters.
   const projectContext = useOutletContext<ProjectOutletContext | undefined>()
+  const refreshProject = projectContext?.refreshProject
   const [documents, setDocuments] = useState<ResearchDocument[]>([])
   const [projects, setProjects] = useState<ResearchProject[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -43,6 +67,8 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadResults, setUploadResults] = useState<UploadResult[]>([])
   const [documentToDelete, setDocumentToDelete] = useState<ResearchDocument | null>(null)
+  const [summaryDocument, setSummaryDocument] = useState<ResearchDocument | null>(null)
+  const [transcriptDocument, setTranscriptDocument] = useState<ResearchDocument | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
@@ -158,18 +184,55 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
     }
   }
 
-  const handleRetry = (document: ResearchDocument) => {
-    setDocuments((previous) =>
-      previous.map((item) => (item.id === document.id ? { ...item, status: 'processing' } : item)),
-    )
-    showToast({ title: 'Retrying processing', description: `${document.name} is being processed again.` })
-    window.setTimeout(() => {
-      setDocuments((previous) =>
-        previous.map((item) => (item.id === document.id ? { ...item, status: 'processed' } : item)),
-      )
-      showToast({ title: 'Processing complete', description: `${document.name} was processed successfully.` })
-    }, 2200)
+  const handleRetry = async (document: ResearchDocument) => {
+    try {
+      const updated = await reprocessDocument(document.projectId, document.id)
+      setDocuments((previous) => previous.map((item) => (item.id === updated.id ? updated : item)))
+      showToast({
+        title: 'Retrying processing',
+        description: `${document.name} is being processed again.`,
+      })
+    } catch (error) {
+      showToast({
+        title: 'Could not retry',
+        description: error instanceof ApiError ? error.message : undefined,
+      })
+    }
   }
+
+  // Refresh while anything is being processed or transcribed (progress shows live).
+  const isAwaitingProcessing = documents.some((document) => document.status === 'processing')
+
+  const documentsRef = useRef(documents)
+  useEffect(() => {
+    documentsRef.current = documents
+  }, [documents])
+
+  useEffect(() => {
+    if (!isAwaitingProcessing || !projectId) return
+    const timer = window.setInterval(() => {
+      listDocuments(projectId)
+        .then((latest) => {
+          // Announce documents that just finished, then take the server's list.
+          for (const document of latest) {
+            const before = documentsRef.current.find((item) => item.id === document.id)
+            if (before?.status !== 'processing' || document.status === 'processing') continue
+            showToast(
+              document.status === 'processed'
+                ? { title: 'Processing complete', description: `${document.name} is ready.` }
+                : {
+                    title: 'Processing failed',
+                    description: `${document.name}: ${document.processingError ?? 'unknown error'}`,
+                  },
+            )
+          }
+          setDocuments(latest)
+          refreshProject?.()
+        })
+        .catch(() => undefined)
+    }, POLL_INTERVAL_MS)
+    return () => window.clearInterval(timer)
+  }, [isAwaitingProcessing, projectId, showToast, refreshProject])
 
   return (
     <PageContainer>
@@ -249,6 +312,14 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
         projectNames={projectNames}
         onDelete={(document) => setDocumentToDelete(document)}
         onRetry={handleRetry}
+        onSummary={setSummaryDocument}
+        onTranscript={setTranscriptDocument}
+      />
+
+      <SummaryModal document={summaryDocument} onClose={() => setSummaryDocument(null)} />
+      <TranscriptModal
+        document={transcriptDocument}
+        onClose={() => setTranscriptDocument(null)}
       />
 
       <Modal
@@ -281,7 +352,7 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
         open={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         title="Upload research data"
-        description="Supported formats: PDF, DOCX, CSV, MP3, WAV and MP4."
+        description={`Supported formats: ${ACCEPTED_EXTENSIONS.slice(0, -1).join(', ')} and ${ACCEPTED_EXTENSIONS.at(-1)}.`}
         footer={
           <>
             <Button variant="ghost" onClick={() => setIsUploadOpen(false)}>
@@ -315,7 +386,7 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
           <input
             type="file"
             multiple
-            accept=".pdf,.docx,.csv,.mp3,.wav,.mp4"
+            accept={ACCEPTED_EXTENSIONS.map((extension) => `.${extension.toLowerCase()}`).join(',')}
             className="hidden"
             onChange={(event) => {
               void handleFiles(Array.from(event.target.files ?? []))
@@ -324,7 +395,7 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
           />
         </label>
 
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
+        <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-7">
           {ACCEPTED_EXTENSIONS.map((extension) => (
             <div
               key={extension}

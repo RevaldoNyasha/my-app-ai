@@ -3,17 +3,28 @@ import type { ReactNode } from 'react'
 import { ApiError, TOKEN_KEY, UNAUTHORIZED_EVENT, getToken } from '@/lib/api'
 import {
   fetchCurrentUser,
+  finishOAuthRequest,
   loginRequest,
   logoutRequest,
   registerRequest,
 } from '@/services/authService'
-import type { AuthSession, AuthUser, LoginPayload, RegisterPayload } from '@/types/auth'
+import type {
+  AuthSession,
+  AuthUser,
+  LoginPayload,
+  OAuthProvider,
+  RegisterPayload,
+} from '@/types/auth'
 
 interface AuthContextValue {
   user: AuthUser | null
   isAuthenticated: boolean
   login: (payload: LoginPayload) => Promise<void>
   register: (payload: RegisterPayload) => Promise<void>
+  /** Finish a Google / GitHub sign-in with the code the provider sent back. */
+  completeOAuthSignIn: (provider: OAuthProvider, code: string, state: string) => Promise<void>
+  /** Show an updated profile (e.g. after editing it) everywhere, without signing in again. */
+  updateUser: (user: AuthUser) => void
   logout: () => void
   usageCount: number
   recordUsage: () => void
@@ -100,6 +111,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [startSession],
   )
 
+  const completeOAuthSignIn = useCallback(
+    async (provider: OAuthProvider, code: string, state: string) =>
+      startSession(await finishOAuthRequest(provider, code, state)),
+    [startSession],
+  )
+
+  const updateUser = useCallback((next: AuthUser) => {
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(next))
+    setUser(next)
+  }, [])
+
   // Confirm the cached session with the backend on load.
   useEffect(() => {
     if (!getToken()) {
@@ -162,6 +184,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: user !== null,
       login,
       register,
+      completeOAuthSignIn,
+      updateUser,
       logout,
       usageCount,
       recordUsage,
@@ -169,7 +193,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       openLogin,
       closeLogin,
     }),
-    [user, login, register, logout, usageCount, recordUsage, loginOpen, openLogin, closeLogin],
+    [
+      user,
+      login,
+      register,
+      completeOAuthSignIn,
+      updateUser,
+      logout,
+      usageCount,
+      recordUsage,
+      loginOpen,
+      openLogin,
+      closeLogin,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

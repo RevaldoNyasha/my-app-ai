@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   CardIcon,
+  ChevronDownIcon,
   CloseIcon,
+  ComposeIcon,
   FolderIcon,
   HelpIcon,
   LogOutIcon,
@@ -13,12 +15,25 @@ import {
   SparkleIcon,
   UserIcon,
 } from '@/components/ui/icons'
+import { ProjectChats } from '@/components/layout/ProjectChats'
+import { Avatar } from '@/components/settings/ProfileSection'
 import { PROJECTS_CHANGED_EVENT, listProjects } from '@/services/projectService'
 import { useAuth } from '@/auth/AuthContext'
 import type { ResearchProject } from '@/types/research'
 import { formatRelativeTime, initials } from '@/lib/format'
 
 const RECENT_PROJECT_LIMIT = 8
+/** Which recent projects the user opened or closed in the sidebar (projectId -> open). */
+const EXPANDED_KEY = 'researchmind.sidebar.expandedProjects'
+
+function readExpanded(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(EXPANDED_KEY)
+    return raw ? (JSON.parse(raw) as Record<string, boolean>) : {}
+  } catch {
+    return {}
+  }
+}
 
 const NAV_ITEMS = [
   { to: '/projects', label: 'Research Projects', icon: FolderIcon, end: false },
@@ -43,8 +58,8 @@ export function Sidebar({
   const [recentProjects, setRecentProjects] = useState<ResearchProject[]>([])
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
-  const displayName = user?.name ?? 'Dr. T. Moyo'
-  const displayEmail = user?.email ?? 't.moyo@researchmind.ai'
+  const displayName = user?.name ?? ''
+  const displayEmail = user?.email ?? ''
 
   const handleLogout = () => {
     setUserMenuOpen(false)
@@ -52,8 +67,27 @@ export function Sidebar({
     navigate('/')
   }
 
-  const projectMatch = /^\/projects\/([^/]+)/.exec(location.pathname)
+  const projectMatch = /^\/projects\/([^/]+)(\/chat)?/.exec(location.pathname)
   const activeProjectId = projectMatch?.[1]
+  const onChatPage = Boolean(projectMatch?.[2])
+  const searchParams = new URLSearchParams(location.search)
+  const activeConversationId = onChatPage ? searchParams.get('conversation') : null
+  const isNewChatActive = onChatPage && searchParams.has('new')
+
+  // A project's chats show under it; the open project starts expanded.
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(readExpanded)
+  const isExpanded = (projectId: string) => expanded[projectId] ?? projectId === activeProjectId
+  const toggleExpanded = (projectId: string) => {
+    setExpanded((previous) => {
+      const next = { ...previous, [projectId]: !isExpanded(projectId) }
+      try {
+        localStorage.setItem(EXPANDED_KEY, JSON.stringify(next))
+      } catch {
+        // not persisted: fine
+      }
+      return next
+    })
+  }
 
   // Re-fetch on navigation and whenever a project is created or deleted.
   useEffect(() => {
@@ -161,36 +195,46 @@ export function Sidebar({
           </button>
         </div>
 
-        <div className={isIconOnly ? 'px-2 pt-3' : 'px-3 pt-3'}>
-          <button
-            type="button"
-            onClick={handleNewProject}
-            title="New Project"
-            aria-label="New Project"
-            className={[
-              'flex items-center rounded-xl border border-ink-200 bg-surface text-[0.84rem] font-medium text-ink-800 shadow-sm transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700',
-              isIconOnly ? 'mx-auto size-10 justify-center' : 'w-full gap-2.5 px-3 py-2.5',
-            ].join(' ')}
-          >
-            <PlusIcon className="size-4 shrink-0" />
-            {!isIconOnly ? <span className="truncate whitespace-nowrap">New Project</span> : null}
-          </button>
-        </div>
-
-        <nav className={`mt-4 space-y-0.5 ${isIconOnly ? 'px-2' : 'px-3'}`}>
+        <nav className={`mt-3 space-y-0.5 ${isIconOnly ? 'px-2' : 'px-3'}`}>
           {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              title={item.label}
-              className={itemClass}
-              onClick={onCloseMobile}
-            >
-              <item.icon className="size-4.5 shrink-0" />
-              {!isIconOnly ? <span className="truncate whitespace-nowrap">{item.label}</span> : null}
-            </NavLink>
+            <div key={item.to} className="relative">
+              <NavLink
+                to={item.to}
+                end={item.end}
+                title={item.label}
+                className={(state) => `${itemClass(state)} ${isIconOnly ? '' : 'pr-10'}`}
+                onClick={onCloseMobile}
+              >
+                <item.icon className="size-4.5 shrink-0" />
+                {!isIconOnly ? (
+                  <span className="truncate whitespace-nowrap">{item.label}</span>
+                ) : null}
+              </NavLink>
+              {!isIconOnly && item.to === '/projects' ? (
+                <button
+                  type="button"
+                  onClick={handleNewProject}
+                  title="New project"
+                  aria-label="New project"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-ink-400 transition-colors hover:bg-ink-200/60 hover:text-ink-800"
+                >
+                  <PlusIcon className="size-4" />
+                </button>
+              ) : null}
+            </div>
           ))}
+          {isIconOnly ? (
+            // Collapsed: no room beside the icon, so "new project" sits just below it.
+            <button
+              type="button"
+              onClick={handleNewProject}
+              title="New project"
+              aria-label="New project"
+              className="mx-auto flex size-10 items-center justify-center rounded-xl text-ink-500 transition-colors hover:bg-ink-100/70 hover:text-ink-900"
+            >
+              <PlusIcon className="size-4.5" />
+            </button>
+          ) : null}
         </nav>
 
         {!isIconOnly ? (
@@ -204,35 +248,76 @@ export function Sidebar({
               ) : null}
               {recentProjects.map((project) => {
                 const isActive = activeProjectId === project.id
+                const open = isExpanded(project.id)
                 return (
-                  <button
-                    key={project.id}
-                    type="button"
-                    onClick={() => {
-                      navigate(`/projects/${project.id}`)
-                      onCloseMobile()
-                    }}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={[
-                      'flex w-full items-start gap-2.5 rounded-xl px-3 py-2 text-left transition-colors',
-                      isActive
-                        ? 'bg-brand-50 text-brand-800'
-                        : 'text-ink-600 hover:bg-ink-100/70 hover:text-ink-900',
-                    ].join(' ')}
-                  >
-                    <FolderIcon className="mt-0.5 size-4 shrink-0 opacity-70" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[0.82rem] font-medium">
-                        {project.name}
-                      </span>
-                      <span className="mt-0.5 flex items-center gap-1.5 text-[0.7rem] text-ink-400">
-                        <span className="truncate">
-                          {project.documentCount} {project.documentCount === 1 ? 'file' : 'files'} ·{' '}
-                          {formatRelativeTime(project.updatedAt)}
+                  <div key={project.id}>
+                    <div
+                      className={[
+                        'group flex w-full items-start rounded-xl transition-colors',
+                        isActive
+                          ? 'bg-brand-50 text-brand-800'
+                          : 'text-ink-600 hover:bg-ink-100/70 hover:text-ink-900',
+                      ].join(' ')}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigate(`/projects/${project.id}`)
+                          onCloseMobile()
+                        }}
+                        aria-current={isActive ? 'page' : undefined}
+                        className="flex min-w-0 flex-1 items-start gap-2.5 py-2 pl-3 text-left"
+                      >
+                        <FolderIcon className="mt-0.5 size-4 shrink-0 opacity-70" />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[0.82rem] font-medium">
+                            {project.name}
+                          </span>
+                          <span className="mt-0.5 flex items-center gap-1.5 text-[0.7rem] text-ink-400">
+                            <span className="truncate">
+                              {project.documentCount}{' '}
+                              {project.documentCount === 1 ? 'file' : 'files'} ·{' '}
+                              {formatRelativeTime(project.updatedAt)}
+                            </span>
+                          </span>
                         </span>
-                      </span>
-                    </span>
-                  </button>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigate(`/projects/${project.id}/chat?new=${Date.now()}`)
+                          onCloseMobile()
+                        }}
+                        aria-label={`New chat in ${project.name}`}
+                        title="New chat"
+                        className={[
+                          'mt-1.5 shrink-0 rounded-lg p-1 text-ink-400 transition-colors hover:bg-ink-200/60 hover:text-ink-800',
+                          isActive && isNewChatActive ? 'bg-ink-200/60 text-ink-800' : '',
+                        ].join(' ')}
+                      >
+                        <ComposeIcon className="size-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(project.id)}
+                        aria-expanded={open}
+                        aria-label={`${open ? 'Hide' : 'Show'} chats for ${project.name}`}
+                        title={open ? 'Hide chats' : 'Show chats'}
+                        className="mr-1.5 ml-0.5 mt-1.5 shrink-0 rounded-lg p-1 text-ink-400 transition-colors hover:bg-ink-200/60 hover:text-ink-800"
+                      >
+                        <ChevronDownIcon
+                          className={`size-4 transition-transform duration-150 ${open ? '' : '-rotate-90'}`}
+                        />
+                      </button>
+                    </div>
+                    {open ? (
+                      <ProjectChats
+                        projectId={project.id}
+                        activeConversationId={isActive ? activeConversationId : null}
+                        onNavigate={onCloseMobile}
+                      />
+                    ) : null}
+                  </div>
                 )
               })}
             </div>
@@ -276,9 +361,7 @@ export function Sidebar({
                   aria-label="Account menu"
                   className="flex shrink-0 items-center rounded-full transition-opacity hover:opacity-80"
                 >
-                  <div className="flex size-8 items-center justify-center rounded-full bg-ink-800 text-[0.7rem] font-semibold text-white dark:bg-ink-100 dark:text-ink-800">
-                    {initials(displayName)}
-                  </div>
+                  <Avatar name={displayName} url={user.avatarUrl} />
                 </button>
 
                 {!isIconOnly ? (

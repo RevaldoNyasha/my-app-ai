@@ -1,5 +1,6 @@
 import { Markdown } from '@/components/ui/Markdown'
 import { SparkleIcon } from '@/components/ui/icons'
+import { usePreferences } from '@/hooks/usePreferences'
 import { formatClockTime } from '@/lib/format'
 import type { ChatMessage as ChatMessageType, Evidence } from '@/types/research'
 
@@ -9,7 +10,24 @@ interface ChatMessageProps {
   projectName?: string
 }
 
+/**
+ * One entry per document: several passages from the same file are listed once,
+ * opening its best-matching passage (evidence arrives best first).
+ */
+function uniqueSources(evidence: Evidence[]): Evidence[] {
+  const seen = new Set<string>()
+  return evidence.filter((item) => {
+    const key = item.documentId ?? item.source
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 export function ChatMessage({ message, onSelectEvidence, projectName }: ChatMessageProps) {
+  // Settings > "Always show evidence citations": when off, answers show no Sources line.
+  const { preferences } = usePreferences()
+
   if (message.role === 'user') {
     return (
       <div className="flex justify-end" style={{ animation: 'rise 220ms ease-out' }}>
@@ -21,6 +39,8 @@ export function ChatMessage({ message, onSelectEvidence, projectName }: ChatMess
       </div>
     )
   }
+
+  const sources = preferences.showEvidence ? uniqueSources(message.evidence ?? []) : []
 
   return (
     <div className="flex gap-3.5" style={{ animation: 'rise 220ms ease-out' }}>
@@ -40,19 +60,20 @@ export function ChatMessage({ message, onSelectEvidence, projectName }: ChatMess
         <div className="rounded-2xl rounded-tl-md border border-ink-100 bg-surface px-4 py-3.5 shadow-[0_1px_2px_rgba(23,23,21,0.03)] sm:px-5 sm:py-4">
           <Markdown content={message.content} />
 
-          {message.evidence && message.evidence.length > 0 ? (
+          {sources.length > 0 ? (
             <div className="mt-3.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 border-t border-ink-100 pt-3">
               <span className="text-[0.7rem] font-medium text-ink-400">Sources:</span>
-              {message.evidence.map((evidence, index) => (
-                <button
-                  key={evidence.id}
-                  type="button"
-                  onClick={() => onSelectEvidence(evidence)}
-                  className="text-[0.72rem] font-medium text-ink-600 underline decoration-ink-300 underline-offset-2 transition-colors hover:text-ink-900 hover:decoration-ink-600"
-                >
-                  {index > 0 ? ', ' : ''}
-                  {evidence.source}
-                </button>
+              {sources.map((evidence, index) => (
+                <span key={evidence.id} className="text-[0.72rem] text-ink-400">
+                  <button
+                    type="button"
+                    onClick={() => onSelectEvidence(evidence)}
+                    className="font-medium text-ink-600 underline decoration-ink-300 underline-offset-2 transition-colors hover:text-ink-900 hover:decoration-ink-600"
+                  >
+                    {evidence.source}
+                  </button>
+                  {index < sources.length - 1 ? ',' : ''}
+                </span>
               ))}
             </div>
           ) : null}

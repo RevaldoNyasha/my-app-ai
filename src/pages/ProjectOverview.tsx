@@ -14,7 +14,9 @@ import {
 } from '@/components/ui/icons'
 import { formatRelativeTime } from '@/lib/format'
 import { useAuth } from '@/auth/AuthContext'
-import { listConversations, listReports, listThemes } from '@/services/researchService'
+import { listReports } from '@/services/reportService'
+import { listThemes } from '@/services/researchService'
+import { listConversations } from '@/services/conversationService'
 import { listDocuments } from '@/services/documentService'
 import type {
   Conversation,
@@ -37,8 +39,8 @@ export function ProjectOverview() {
     Promise.all([
       listThemes(project.id),
       listDocuments(project.id).catch(() => []),
-      listReports(project.id),
-      listConversations(project.id),
+      listReports(project.id).catch(() => []),
+      listConversations(project.id).catch(() => []),
     ]).then(([themesResult, documentsResult, reportsResult, conversationsResult]) => {
       if (cancelled) return
       setThemes(themesResult)

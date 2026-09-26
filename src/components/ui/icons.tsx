@@ -32,6 +32,14 @@ export const PlusIcon = (props: IconProps) => (
   </Icon>
 )
 
+/** Pencil on a square: start a new chat. */
+export const ComposeIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 4.5H6.5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V12" />
+    <path d="M17.6 3.9a1.9 1.9 0 0 1 2.7 2.7L12.5 14.4l-3.4.8.8-3.4z" />
+  </Icon>
+)
+
 export const HomeIcon = (props: IconProps) => (
   <Icon {...props}>
     <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" />

@@ -53,8 +53,59 @@ export interface ResearchDocument {
   participantCount: number
   /** Detected language; `null` until the backend processes the file. */
   language: string | null
+  /** Why processing failed; only set when `status` is `failed`. */
+  processingError?: string | null
+  /** What slow processing is doing, e.g. "Transcribing: 43%"; only while `processing`. */
+  processingProgress?: string | null
   uploadedAt: string
   updatedAt: string
+}
+
+export interface TranscriptSegment {
+  /** Seconds from the start of the recording. */
+  start: number
+  end: number
+  text: string
+}
+
+/** A recording's timed transcript (`GET …/documents/{id}/transcript`). */
+export interface DocumentTranscript {
+  documentId: string
+  language: string | null
+  /** Seconds. */
+  duration: number | null
+  model: string | null
+  segments: TranscriptSegment[]
+  /** English translation, when "Translate transcripts to English" made one. */
+  translation: TranscriptSegment[] | null
+}
+
+/** An AI summary of one document (`GET/POST …/documents/{id}/summary`). */
+export interface DocumentSummary {
+  documentId: string
+  status: 'processing' | 'ready' | 'failed'
+  /** Markdown; only set when `status` is `ready`. */
+  content: string | null
+  error: string | null
+  model: string | null
+  createdAt: string
+  completedAt: string | null
+}
+
+/** A project's cross-document analysis (`POST …/analyze`, `GET …/analysis`). */
+export interface ProjectAnalysis {
+  projectId: string
+  status: 'processing' | 'ready' | 'failed'
+  /** Markdown with ## sections; only set when `status` is `ready`. */
+  content: string | null
+  error: string | null
+  model: string | null
+  /** e.g. "Reading documents (2 of 5): Interview_03.docx" while processing. */
+  progress: string | null
+  /** The documents the analysis covered. */
+  documents: { id: string; name: string }[]
+  createdAt: string
+  completedAt: string | null
 }
 
 export interface Participant {
@@ -86,16 +137,20 @@ export interface ChatMessage {
   content: string
   createdAt: string
   projectId?: string
-  evidence?: Evidence[]
+  /** Set on messages stored by the backend. */
+  conversationId?: string
+  evidence?: Evidence[] | null
 }
 
 export interface Conversation {
   id: string
   projectId: string
   title: string
-  updatedAt: string
+  /** The conversation's first question. */
   preview: string
   messageCount: number
+  createdAt?: string
+  updatedAt: string
 }
 
 export interface ResearchCode {
@@ -127,6 +182,17 @@ export interface ThemeRelationship {
   strength: number
 }
 
+export type ReportType = 'thematic_analysis' | 'evidence_summary' | 'comparison' | 'custom'
+
+export interface ReportGeneration {
+  state: 'processing' | 'ready' | 'failed'
+  /** e.g. "Reading documents (2 of 5)" while processing. */
+  progress?: string | null
+  error?: string | null
+  startedAt: string
+  completedAt?: string | null
+}
+
 export interface ResearchReport {
   id: string
   projectId: string
@@ -135,4 +201,20 @@ export interface ResearchReport {
   createdAt: string
   sections: string[]
   status: 'draft' | 'final'
+  type?: ReportType
+  documents?: { id: string; name: string }[]
+  model?: string | null
+  generation?: ReportGeneration
+  /** Markdown with `## ` sections; only on `GET` one report, once ready. */
+  content?: string | null
+}
+
+/** `GET /report-templates`: a report type and its section outline. */
+export interface ReportTemplate {
+  type: ReportType
+  label: string
+  description: string
+  /** Fixed headings; empty when `customSections` (the user supplies them). */
+  sections: string[]
+  customSections: boolean
 }

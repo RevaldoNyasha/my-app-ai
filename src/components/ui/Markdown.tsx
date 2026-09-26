@@ -2,21 +2,39 @@ import type { ReactNode } from 'react'
 
 /**
  * A deliberately small markdown renderer for assistant responses.
- * Supports: `## h2`, `### h3`, `- bullets`, `1. ordered`, **bold**, and
+ * Supports: `#`–`####` headings, `- bullets` (also `*`, `+`, indented),
+ * `1. ordered`, **bold** / __bold__, *italic* / _italic_, `code`, and
  * blank-line separated paragraphs — enough for structured research answers
  * without pulling in a markdown dependency.
  */
 
+// Bold before italic, so `**x**` is never read as two italics. Italic markers
+// must hug the text (`*x*`, not `a * b`), and `_` only counts at word edges
+// (so `file_name_2` stays as written).
+const INLINE =
+  /(\*\*(?:[^*\n]|\*(?!\*))+?\*\*|__[^_\n]+?__|`[^`\n]+`|\*(?![\s*])[^*\n]*?[^\s*]\*|\*[^\s*]\*|(?<![\w])_(?![\s_])[^_\n]*?[^\s_]_(?![\w]))/g
+
 function renderInline(text: string, keyPrefix: string): ReactNode[] {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
+  return text.split(INLINE).map((part, index) => {
+    const key = `${keyPrefix}-${index}`
+    if (/^(\*\*|__).+\1$/.test(part)) {
       return (
-        <strong key={`${keyPrefix}-b-${index}`} className="font-semibold text-ink-900">
-          {part.slice(2, -2)}
+        <strong key={key} className="font-semibold text-ink-900">
+          {renderInline(part.slice(2, -2), key)}
         </strong>
       )
     }
-    return <span key={`${keyPrefix}-t-${index}`}>{part}</span>
+    if (/^`.+`$/.test(part)) {
+      return (
+        <code key={key} className="rounded bg-ink-100 px-1 py-0.5 text-[0.85em] text-ink-800">
+          {part.slice(1, -1)}
+        </code>
+      )
+    }
+    if (/^([*_]).+\1$/.test(part)) {
+      return <em key={key}>{part.slice(1, -1)}</em>
+    }
+    return <span key={key}>{part}</span>
   })
 }
 
@@ -39,17 +57,18 @@ function parse(content: string): Block[] {
       continue
     }
 
-    if (trimmed.startsWith('### ')) {
-      blocks.push({ type: 'h3', text: trimmed.slice(4) })
+    const heading = /^(#{1,6})\s+(.*?)\s*#*$/.exec(trimmed)
+    if (heading) {
+      // Answers are short: `#`/`##` read as section titles, anything deeper as sub-headings.
+      blocks.push({ type: heading[1].length <= 2 ? 'h2' : 'h3', text: heading[2] })
       continue
     }
 
-    if (trimmed.startsWith('## ')) {
-      blocks.push({ type: 'h2', text: trimmed.slice(3) })
-      continue
+    if (/^([-*_])(\s*\1){2,}$/.test(trimmed)) {
+      continue // a horizontal rule (`---`): the block spacing already separates sections
     }
 
-    const bullet = /^[-*]\s+(.*)$/.exec(trimmed)
+    const bullet = /^[-*+]\s+(.*)$/.exec(trimmed)
     if (bullet) {
       const last = blocks[blocks.length - 1]
       if (last && last.type === 'ul') {

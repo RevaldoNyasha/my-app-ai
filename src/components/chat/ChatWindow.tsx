@@ -35,7 +35,13 @@ export function ChatWindow({
     container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
   }, [messages, isSending])
 
-  const isEmpty = messages.length === 0
+  // A streaming answer starts as an empty message; show the typing dots until
+  // its first words arrive, then the growing answer itself.
+  const visibleMessages = messages.filter(
+    (message) => !(message.role === 'assistant' && message.content === ''),
+  )
+  const isStreamingAnswer = isSending && visibleMessages.at(-1)?.role === 'assistant'
+  const isEmpty = visibleMessages.length === 0
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -51,7 +57,7 @@ export function ChatWindow({
           <WelcomeScreen onSelectPrompt={(prompt) => onSend(prompt)} />
         ) : (
           <div className="mx-auto w-full max-w-3xl space-y-7 px-4 py-7 sm:px-6">
-            {messages.map((message) => (
+            {visibleMessages.map((message) => (
               <ChatMessage
                 key={message.id}
                 message={message}
@@ -60,7 +66,7 @@ export function ChatWindow({
               />
             ))}
 
-            {isSending ? (
+            {isSending && !isStreamingAnswer ? (
               <div className="flex gap-3.5">
                 <SparkleIcon className="mt-0.5 size-4 shrink-0 text-ink-800" />
                 <div className="rounded-2xl rounded-tl-md border border-ink-100 bg-surface px-4 py-3.5 shadow-[0_1px_2px_rgba(23,23,21,0.03)]">
