@@ -25,9 +25,9 @@ export function HeroSection() {
           transition={{ duration: 0.75, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
           className="mt-7 max-w-4xl text-[2.6rem] font-bold leading-[1.06] tracking-tight text-white sm:text-6xl lg:text-[4.5rem]"
         >
-          Turn research data
+          All your field data.
           <span className="mt-1 block bg-gradient-to-r from-white via-slate-300 to-white bg-clip-text text-transparent">
-            into better decisions.
+            One place. Ready in minutes.
           </span>
         </motion.h1>
 
@@ -37,9 +37,9 @@ export function HeroSection() {
           transition={{ duration: 0.7, delay: 0.24, ease: 'easeOut' }}
           className="mt-6 max-w-xl text-base leading-7 text-slate-400 sm:text-lg"
         >
-          ResearchMind AI helps you analyse interviews, transcripts, surveys and documents,
-          uncover meaningful insights and make evidence-based decisions — all through a simple
-          conversation.
+          Bring your interviews, recordings, surveys and documents together. ResearchMind AI
+          processes them for you, connects the dots, and turns them into summaries, themes and
+          reports — fast.
         </motion.p>
 
         <ResearchFlow />

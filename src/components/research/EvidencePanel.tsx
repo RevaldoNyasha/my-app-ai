@@ -1,7 +1,6 @@
-import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { CloseIcon, QuoteIcon, SourceIcon } from '@/components/ui/icons'
-import { useToast } from '@/hooks/useToast'
+import { useNavigate, useParams } from 'react-router-dom'
 import type { Evidence } from '@/types/research'
 
 interface EvidencePanelProps {
@@ -11,23 +10,26 @@ interface EvidencePanelProps {
 }
 
 export function EvidencePanel({ evidence, onClose, projectName }: EvidencePanelProps) {
-  const { comingSoon } = useToast()
+  const navigate = useNavigate()
+  const { projectId } = useParams()
 
   if (!evidence) {
     return null
   }
 
-  const metadata = [
-    { label: 'Participant', value: evidence.participant },
-    { label: 'Timestamp', value: evidence.timestamp ?? '—' },
-    { label: 'Theme', value: evidence.theme ?? 'Unassigned' },
-    { label: 'Code', value: evidence.code ?? 'Unassigned' },
-    { label: 'Language', value: evidence.language ?? 'Not recorded' },
-    {
-      label: 'Relevance',
-      value: evidence.relevance ? `${Math.round(evidence.relevance * 100)}% match` : '—',
-    },
-  ]
+  // Take the researcher to the file the quote came from. Without a documentId, search the
+  // data for the source label, which is the file name written as prose ("Interview 03").
+  const openSource = () => {
+    const params = new URLSearchParams()
+    if (evidence.documentId) {
+      params.set('document', evidence.documentId)
+      if (evidence.timestamp) params.set('t', evidence.timestamp)
+    } else {
+      params.set('q', evidence.source)
+    }
+    onClose()
+    navigate(`/projects/${projectId}/data?${params.toString()}`)
+  }
 
   return (
     <>
@@ -66,17 +68,6 @@ export function EvidencePanel({ evidence, onClose, projectName }: EvidencePanelP
             <p className="mt-0.5 text-[0.76rem] text-ink-500">{projectName}</p>
           ) : null}
 
-          <dl className="mt-4 grid grid-cols-2 gap-2">
-            {metadata.map((item) => (
-              <div key={item.label} className="rounded-xl border border-ink-100 bg-canvas px-3 py-2">
-                <dt className="text-[0.66rem] font-medium uppercase tracking-wide text-ink-400">
-                  {item.label}
-                </dt>
-                <dd className="mt-0.5 text-[0.82rem] font-medium text-ink-800">{item.value}</dd>
-              </div>
-            ))}
-          </dl>
-
           <section className="mt-6">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.09em] text-ink-400">
               Original Evidence
@@ -88,17 +79,6 @@ export function EvidencePanel({ evidence, onClose, projectName }: EvidencePanelP
               </p>
             </blockquote>
           </section>
-
-          <section className="mt-6">
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.09em] text-ink-400">
-              Classification
-            </p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {evidence.theme ? <Badge tone="brand">{evidence.theme}</Badge> : null}
-              {evidence.code ? <Badge tone="outline">{evidence.code}</Badge> : null}
-              <Badge tone="neutral">{evidence.source}</Badge>
-            </div>
-          </section>
         </div>
 
         <footer className="shrink-0 border-t border-ink-100 bg-ink-50/60 px-4 py-3">
@@ -106,16 +86,14 @@ export function EvidencePanel({ evidence, onClose, projectName }: EvidencePanelP
             variant="primary"
             size="md"
             className="w-full"
-            onClick={() => {
-              onClose()
-              comingSoon('The source viewer')
-            }}
+            disabled={!projectId}
+            onClick={openSource}
           >
             <SourceIcon className="size-4" />
-            Open Source
+            Open source
           </Button>
           <p className="mt-2 text-center text-[0.68rem] text-ink-400">
-            Source viewer will open the full transcript in a future release.
+            Opens {evidence.source} in your data.
           </p>
         </footer>
       </aside>

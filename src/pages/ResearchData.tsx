@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useOutletContext, useSearchParams } from 'react-router-dom'
 import { PageContainer, PageHeading } from '@/components/layout/PageContainer'
 import { DataTable } from '@/components/research/DataTable'
 import { SummaryModal } from '@/components/research/SummaryModal'
 import { TranscriptModal } from '@/components/research/TranscriptModal'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
-import { FilterIcon, SearchIcon, UploadIcon } from '@/components/ui/icons'
+import { SearchIcon, UploadIcon } from '@/components/ui/icons'
 import { useToast } from '@/hooks/useToast'
 import { useAuth } from '@/auth/AuthContext'
 import { ApiError } from '@/lib/api'
+import { documentFormat, parseTimestamp } from '@/lib/format'
 import {
   deleteDocument,
   listDocuments,
@@ -36,8 +37,10 @@ const ACCEPTED_EXTENSIONS = [
   'MOV',
   'WEBM',
 ]
-const TYPE_FILTERS = ['All', 'Interview', 'Focus Group', 'Survey', 'Research Notes'] as const
 const POLL_INTERVAL_MS = 3000
+
+/** Lowercase letters and digits only, so "Focus Group 02" finds "FocusGroup_02.mp3". */
+const compact = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '')
 
 interface ResearchDataPageProps {
   projectId?: string
@@ -60,7 +63,6 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
   const [projects, setProjects] = useState<ResearchProject[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
-  const [typeFilter, setTypeFilter] = useState<(typeof TYPE_FILTERS)[number]>('All')
   const [extensionFilter, setExtensionFilter] = useState<string | null>(null)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -69,6 +71,8 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
   const [documentToDelete, setDocumentToDelete] = useState<ResearchDocument | null>(null)
   const [summaryDocument, setSummaryDocument] = useState<ResearchDocument | null>(null)
   const [transcriptDocument, setTranscriptDocument] = useState<ResearchDocument | null>(null)
+  const [transcriptFocus, setTranscriptFocus] = useState<number | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
   const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
@@ -95,6 +99,34 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
     }
   }, [projectId, isAuthenticated, showToast])
 
+  // Arriving from a quote's "Open source": show that file, and for a recording open its
+  // transcript at the quoted moment. The link is consumed so a refresh doesn't repeat it.
+  useEffect(() => {
+    if (isLoading) return
+    const documentId = searchParams.get('document')
+    const search = searchParams.get('q')
+    if (!documentId && !search) return
+
+    setSearchParams({}, { replace: true })
+    setExtensionFilter(null)
+
+    if (!documentId) {
+      setQuery(search ?? '')
+      return
+    }
+    const target = documents.find((document) => document.id === documentId)
+    if (!target) {
+      showToast({ title: 'Source file not found', description: 'It may have been deleted.' })
+      return
+    }
+    setQuery(target.name)
+    const format = documentFormat(target)
+    if ((format === 'Audio' || format === 'Video') && target.status === 'processed') {
+      setTranscriptFocus(parseTimestamp(searchParams.get('t')))
+      setTranscriptDocument(target)
+    }
+  }, [isLoading, documents, searchParams, setSearchParams, showToast])
+
   const projectNames = useMemo(
     () => Object.fromEntries(projects.map((project) => [project.id, project.name])),
     [projects],
@@ -102,16 +134,17 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase()
+    const compacted = compact(normalized)
     return documents.filter((document) => {
       const matchesQuery =
         !normalized ||
         document.name.toLowerCase().includes(normalized) ||
-        document.type.toLowerCase().includes(normalized)
-      const matchesType = typeFilter === 'All' || document.type === typeFilter
+        (compacted !== '' && compact(document.name).includes(compacted)) ||
+        documentFormat(document).toLowerCase().includes(normalized)
       const matchesExtension = !extensionFilter || document.extension === extensionFilter
-      return matchesQuery && matchesType && matchesExtension
+      return matchesQuery && matchesExtension
     })
-  }, [documents, query, typeFilter, extensionFilter])
+  }, [documents, query, extensionFilter])
 
   const handleFiles = async (files: File[]) => {
     if (files.length === 0 || isUploading) return
@@ -254,29 +287,10 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search files, participants or type..."
+            placeholder="Search files or type..."
             aria-label="Search research data"
             className="h-10 w-full rounded-xl border border-ink-200 bg-surface pl-9 pr-3 text-[0.86rem] text-ink-800 outline-none transition-colors placeholder:text-ink-400 focus:border-brand-400"
           />
-        </div>
-
-        <div className="flex h-10 items-center gap-1.5 rounded-xl border border-ink-200 bg-surface px-2">
-          <FilterIcon className="size-4 text-ink-400" />
-          {TYPE_FILTERS.map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              onClick={() => setTypeFilter(filter)}
-              className={[
-                'rounded-lg px-2.5 py-1 text-[0.76rem] font-medium transition-colors',
-                typeFilter === filter
-                  ? 'bg-brand-50 text-brand-700'
-                  : 'text-ink-500 hover:bg-ink-100 hover:text-ink-800',
-              ].join(' ')}
-            >
-              {filter}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -319,7 +333,11 @@ export function ResearchDataPage({ projectId }: ResearchDataPageProps) {
       <SummaryModal document={summaryDocument} onClose={() => setSummaryDocument(null)} />
       <TranscriptModal
         document={transcriptDocument}
-        onClose={() => setTranscriptDocument(null)}
+        focusAt={transcriptFocus}
+        onClose={() => {
+          setTranscriptDocument(null)
+          setTranscriptFocus(null)
+        }}
       />
 
       <Modal

@@ -9,6 +9,13 @@ import { ProjectLayout } from '@/components/layout/ProjectLayout'
 // Each page is downloaded the first time it is opened, so the first visit only
 // loads the shell and the page being viewed (not the whole app).
 const LandingPage = lazy(() => import('@/pages/LandingPage').then((m) => ({ default: m.LandingPage })))
+const PlatformPage = lazy(() => import('@/pages/Platform').then((m) => ({ default: m.PlatformPage })))
+const PricingPage = lazy(() => import('@/pages/Pricing').then((m) => ({ default: m.PricingPage })))
+const ResourcesPage = lazy(() =>
+  import('@/pages/Resources').then((m) => ({ default: m.ResourcesPage })),
+)
+const PrivacyPage = lazy(() => import('@/pages/Privacy').then((m) => ({ default: m.PrivacyPage })))
+const ContactPage = lazy(() => import('@/pages/Contact').then((m) => ({ default: m.ContactPage })))
 const Projects = lazy(() => import('@/pages/Projects').then((m) => ({ default: m.Projects })))
 const ProjectOverview = lazy(() =>
   import('@/pages/ProjectOverview').then((m) => ({ default: m.ProjectOverview })),
@@ -65,6 +72,11 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Page><LandingPage /></Page>} />
+          <Route path="platform" element={<Page><PlatformPage /></Page>} />
+          <Route path="pricing" element={<Page><PricingPage /></Page>} />
+          <Route path="resources" element={<Page><ResourcesPage /></Page>} />
+          <Route path="privacy" element={<Page><PrivacyPage /></Page>} />
+          <Route path="contact" element={<Page><ContactPage /></Page>} />
           <Route path="auth/callback/:provider" element={<Page><OAuthCallback /></Page>} />
           <Route element={<AppLayout />}>
             <Route path="projects" element={<Page><Projects /></Page>} />

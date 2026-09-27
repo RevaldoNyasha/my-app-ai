@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'motion/react'
-import { DatabaseIcon, QuoteIcon, SendIcon, SparkleIcon } from '@/components/ui/icons'
+import { DatabaseIcon, LayersIcon, QuoteIcon, ReportIcon, SendIcon, SparkleIcon } from '@/components/ui/icons'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { SectionHeading } from './SectionHeading'
-import {
-  BrainIcon,
-  ChartUpIcon,
-  IdeaIcon,
-  TargetIcon,
-} from './icons'
+import { BrainIcon, ChartUpIcon } from './icons'
 
 const ANSWER_HEADER = 'I identified four recurring themes across the research data.'
 const ANSWER_ITEMS = [
@@ -29,8 +24,8 @@ const EVIDENCE = [
   },
 ]
 
-const FLOW_ICONS = [IdeaIcon, DatabaseIcon, BrainIcon, ChartUpIcon, TargetIcon]
-const FLOW_LABELS = ['Idea', 'Research', 'AI analysis', 'Insight', 'Decisions']
+const FLOW_ICONS = [DatabaseIcon, LayersIcon, BrainIcon, ChartUpIcon, ReportIcon]
+const FLOW_LABELS = ['Bring it together', 'Process', 'Connect the dots', 'Understand', 'Summaries & reports']
 
 function TypingDots() {
   return (
@@ -73,9 +68,9 @@ export function ChatDemo() {
     <section className="relative" aria-label="Ask questions about your research">
       <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
         <SectionHeading
-          eyebrow="Conversation"
-          title="Ask questions about your research."
-          description="ResearchMind is not a generic chatbot. Every answer points back to the sources it came from."
+          eyebrow="Understand it"
+          title="Then just ask your data."
+          description="Ask questions across all of your field data at once and get clear answers, summaries and reports — every one linked back to the source it came from."
         />
 
         <div ref={sectionRef} className="mx-auto mt-12 w-full max-w-3xl">
@@ -223,7 +218,7 @@ export function ChatDemo() {
                   <button
                     type="button"
                     aria-label="Send message"
-                    className="flex size-9 items-center justify-center rounded-lg bg-white text-[#060707] transition-colors hover:bg-slate-200"
+                    className="flex size-9 items-center justify-center rounded-lg border border-white/20 text-white transition-colors hover:border-white/40"
                   >
                     <SendIcon className="size-4" />
                   </button>

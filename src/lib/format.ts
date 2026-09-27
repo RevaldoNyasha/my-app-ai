@@ -1,3 +1,5 @@
+import type { ResearchDocument } from '@/types/research'
+
 const MINUTE = 60 * 1000
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
@@ -52,4 +54,23 @@ export function initials(name: string): string {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('')
+}
+
+const AUDIO_EXTENSIONS = new Set(['MP3', 'WAV', 'M4A', 'OGG', 'FLAC', 'WMA'])
+const VIDEO_EXTENSIONS = new Set(['MP4', 'MOV', 'WEBM'])
+
+/** The file's format as shown to researchers: "Audio", "Video", or the extension (e.g. "DOCX"). */
+export function documentFormat(document: ResearchDocument): string {
+  const extension = document.extension.replace(/^\./, '').toUpperCase()
+  if (document.kind === 'audio' || AUDIO_EXTENSIONS.has(extension)) return 'Audio'
+  if (document.kind === 'video' || VIDEO_EXTENSIONS.has(extension)) return 'Video'
+  return extension || '—'
+}
+
+/** Seconds from an evidence timestamp such as "04:32" or "1:04:32"; `null` if unreadable. */
+export function parseTimestamp(value: string | null | undefined): number | null {
+  if (!value) return null
+  const parts = value.split(':').map(Number)
+  if (parts.length < 2 || parts.length > 3 || parts.some((part) => Number.isNaN(part))) return null
+  return parts.reduce((total, part) => total * 60 + part, 0)
 }

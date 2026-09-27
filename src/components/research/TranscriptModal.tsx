@@ -7,6 +7,8 @@ import type { DocumentTranscript, ResearchDocument, TranscriptSegment } from '@/
 interface TranscriptModalProps {
   document: ResearchDocument | null
   onClose: () => void
+  /** Seconds into the recording to highlight and scroll to, e.g. where a quote was said. */
+  focusAt?: number | null
 }
 
 /** `mm:ss`, or `h:mm:ss` from an hour on (matches evidence timestamps). */
@@ -30,7 +32,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
 }
 
 /** Read a recording's transcript, line by line with timestamps. */
-export function TranscriptModal({ document, onClose }: TranscriptModalProps) {
+export function TranscriptModal({ document, onClose, focusAt = null }: TranscriptModalProps) {
   const [transcript, setTranscript] = useState<DocumentTranscript | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showEnglish, setShowEnglish] = useState(false)
@@ -60,6 +62,10 @@ export function TranscriptModal({ document, onClose }: TranscriptModalProps) {
     : null
   const segments: TranscriptSegment[] =
     showEnglish && transcript?.translation ? transcript.translation : (transcript?.segments ?? [])
+
+  // The segment playing at `focusAt`: the last one that starts at or before it.
+  const focusIndex =
+    focusAt === null ? -1 : segments.findLastIndex((segment) => segment.start <= focusAt)
 
   const description = transcript
     ? [
@@ -109,7 +115,18 @@ export function TranscriptModal({ document, onClose }: TranscriptModalProps) {
           ) : null}
           <ol className="space-y-2.5">
             {segments.map((segment, index) => (
-              <li key={`${segment.start}-${index}`} className="flex gap-3">
+              <li
+                key={`${segment.start}-${index}`}
+                ref={
+                  index === focusIndex
+                    ? (element) => element?.scrollIntoView({ block: 'center' })
+                    : undefined
+                }
+                className={[
+                  'flex gap-3 rounded-lg',
+                  index === focusIndex ? '-mx-2 bg-brand-50 px-2 py-1 dark:bg-brand-400/10' : '',
+                ].join(' ')}
+              >
                 <span className="w-14 shrink-0 pt-0.5 text-right text-[0.72rem] tabular-nums text-ink-400">
                   {formatTime(segment.start)}
                 </span>

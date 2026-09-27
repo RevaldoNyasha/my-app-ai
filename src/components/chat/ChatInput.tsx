@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { MicrophoneIcon, SendIcon } from '@/components/ui/icons'
-import { useToast } from '@/hooks/useToast'
+import { SendIcon } from '@/components/ui/icons'
 
 interface ChatInputProps {
   value: string
@@ -12,7 +11,6 @@ interface ChatInputProps {
 const MAX_HEIGHT = 200
 
 export function ChatInput({ value, onChange, onSend, isSending = false }: ChatInputProps) {
-  const { comingSoon } = useToast()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isFocused, setIsFocused] = useState(false)
   const canSend = value.trim().length > 0 && !isSending
@@ -52,16 +50,6 @@ export function ChatInput({ value, onChange, onSend, isSending = false }: ChatIn
           aria-label="Message ResearchMind"
           className="max-h-[200px] min-h-[2.25rem] flex-1 resize-none bg-transparent py-2 text-[0.92rem] leading-6 text-ink-800 outline-none placeholder:text-ink-400"
         />
-
-        <button
-          type="button"
-          onClick={() => comingSoon('Voice input')}
-          aria-label="Voice input"
-          title="Voice input"
-          className="mb-0.5 hidden size-9 shrink-0 items-center justify-center rounded-xl text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-800 sm:flex"
-        >
-          <MicrophoneIcon className="size-4.5" />
-        </button>
 
         <button
           type="button"

@@ -1,32 +1,32 @@
 import { Link } from 'react-router-dom'
-import { LandingLogo } from './LandingLogo'
+import { SparkleIcon } from '@/components/ui/icons'
 
-const LINK_GROUPS: { title: string; links: { label: string; href: string }[] }[] = [
+const LINK_GROUPS: { title: string; links: { label: string; to: string }[] }[] = [
   {
     title: 'Product',
     links: [
-      { label: 'Platform', href: '#platform' },
-      { label: 'Pricing', href: '#pricing' },
+      { label: 'Platform', to: '/platform' },
+      { label: 'Pricing', to: '/pricing' },
     ],
   },
   {
     title: 'Company',
     links: [
-      { label: 'Resources', href: '#resources' },
-      { label: 'Privacy', href: '#resources' },
-      { label: 'Contact', href: '#resources' },
+      { label: 'Resources', to: '/resources' },
+      { label: 'Privacy', to: '/privacy' },
+      { label: 'Contact', to: '/contact' },
     ],
   },
 ]
 
 export function LandingFooter() {
   return (
-    <footer id="resources" className="relative border-t border-white/[0.06] bg-[#040505]">
+    <footer className="relative border-t border-white/[0.06] bg-[#040505]">
       <div className="mx-auto max-w-7xl px-5 pb-10 pt-16 sm:px-8">
         <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <Link to="/" className="flex items-center gap-2.5" aria-label="ResearchMind AI — home">
-              <LandingLogo className="size-9" />
+              <SparkleIcon className="size-8 text-white" aria-hidden="true" />
               <span className="text-[1.05rem] font-semibold tracking-tight text-white">
                 ResearchMind <span className="text-white">AI</span>
               </span>
@@ -45,12 +45,12 @@ export function LandingFooter() {
               <ul className="mt-4 space-y-2.5">
                 {group.links.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
+                    <Link
+                      to={link.to}
                       className="text-[0.9rem] text-slate-400 transition-colors hover:text-white"
                     >
                       {link.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>

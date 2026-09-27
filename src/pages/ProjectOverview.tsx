@@ -138,7 +138,7 @@ export function ProjectOverview() {
                     </span>
                   </div>
                   <p className="mt-1 text-[0.74rem] text-ink-500">
-                    {theme.excerptCount} excerpts · {theme.participantCount} participants
+                    {theme.excerptCount} excerpts · {theme.sourceCount} sources
                   </p>
                   <div className="mt-2 h-1 overflow-hidden rounded-full bg-ink-100">
                     <div
@@ -175,10 +175,7 @@ export function ProjectOverview() {
             </h2>
             <dl className="mt-3 space-y-2.5">
               {[
-                { label: 'Documents', value: project.documentCount },
-                { label: 'Interviews', value: project.interviewCount },
-                { label: 'Focus groups', value: project.focusGroupCount },
-                { label: 'Participants', value: project.participantCount },
+                { label: 'Research data', value: project.documentCount },
                 { label: 'Reports', value: reports.length },
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between text-[0.84rem]">

@@ -1,19 +1,14 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'motion/react'
-import { DatabaseIcon } from '@/components/ui/icons'
+import { DatabaseIcon, LayersIcon, ReportIcon } from '@/components/ui/icons'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
-import {
-  BrainIcon,
-  ChartUpIcon,
-  IdeaIcon,
-  TargetIcon,
-} from './icons'
+import { BrainIcon, ChartUpIcon } from './icons'
 
 interface Stage {
   key: string
   title: string
   description: string
-  icon: typeof IdeaIcon
+  icon: typeof BrainIcon
   tag?: string
   central?: boolean
   insights?: boolean
@@ -22,37 +17,37 @@ interface Stage {
 
 const STAGES: Stage[] = [
   {
-    key: 'idea',
-    title: 'Idea',
-    description: 'Start with a research\nquestion or challenge.',
-    icon: IdeaIcon,
-  },
-  {
-    key: 'research',
-    title: 'Research',
-    description: 'Bring your interviews,\ndocuments, surveys\nand more.',
+    key: 'collect',
+    title: 'Bring it together',
+    description: 'All your interviews,\nrecordings, surveys\nand notes in one place.',
     icon: DatabaseIcon,
     tag: '24 sources',
   },
   {
-    key: 'analysis',
-    title: 'AI Analysis',
-    description: 'Find themes,\npatterns and insights.',
+    key: 'process',
+    title: 'Process',
+    description: 'Transcribed, translated\nand organised\nautomatically.',
+    icon: LayersIcon,
+  },
+  {
+    key: 'connect',
+    title: 'Connect the dots',
+    description: 'AI finds themes and\npatterns across\nevery source.',
     icon: BrainIcon,
     central: true,
   },
   {
-    key: 'insight',
-    title: 'Insight',
-    description: 'Get clear,\nevidence-backed findings.',
+    key: 'understand',
+    title: 'Understand',
+    description: 'Clear findings backed\nby real quotes.',
     icon: ChartUpIcon,
     insights: true,
   },
   {
-    key: 'decision',
-    title: 'Better Decisions',
-    description: 'Use your insights to\ninform policy, programs\nand real change.',
-    icon: TargetIcon,
+    key: 'report',
+    title: 'Summaries & reports',
+    description: 'Ready-to-share\nsummaries and reports\nin minutes.',
+    icon: ReportIcon,
     final: true,
   },
 ]
@@ -251,7 +246,7 @@ export function ResearchFlow() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className="relative mx-auto mt-14 w-full max-w-6xl px-1 sm:mt-16 sm:px-2"
-      aria-label="The research journey: idea, research, AI analysis, insight, then better decisions"
+      aria-label="How it works: bring your data together, process it, connect the dots, understand it, then create summaries and reports"
     >
       <div
         className="landing-glow absolute left-1/2 top-1/2 h-72 w-[min(50rem,92%)] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"

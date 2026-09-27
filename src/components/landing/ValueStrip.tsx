@@ -1,27 +1,27 @@
 import { motion } from 'motion/react'
-import { GlobeIcon } from '@/components/ui/icons'
-import { LockIcon, TargetIcon, UsersIcon } from './icons'
+import { DatabaseIcon, GlobeIcon, ReportIcon } from '@/components/ui/icons'
+import { LockIcon } from './icons'
 
 const VALUES = [
   {
-    title: 'For researchers',
-    description: 'Academic, development, market and social research.',
-    icon: UsersIcon,
+    title: 'Everything in one place',
+    description: 'No more scattered files, drives and notebooks.',
+    icon: DatabaseIcon,
   },
   {
-    title: 'Multilingual',
-    description: 'English, Shona, Ndebele and more.',
+    title: 'Processed for you',
+    description: 'Transcribed and translated — English, Shona, Ndebele and more.',
     icon: GlobeIcon,
   },
   {
-    title: 'Secure',
-    description: 'Your research data stays private.',
-    icon: LockIcon,
+    title: 'Reports in minutes',
+    description: 'Summaries and reports from your field data, fast.',
+    icon: ReportIcon,
   },
   {
-    title: 'Real impact',
-    description: 'Turn research into meaningful change.',
-    icon: TargetIcon,
+    title: 'Private and secure',
+    description: 'Your research data stays yours.',
+    icon: LockIcon,
   },
 ]
 

@@ -120,7 +120,8 @@ export interface Participant {
 export interface Evidence {
   id: string
   source: string
-  participant: string
+  /** Pseudonymous speaker label. Not shown: participants can't be identified reliably yet. */
+  participant?: string
   timestamp?: string
   page?: number
   quote: string

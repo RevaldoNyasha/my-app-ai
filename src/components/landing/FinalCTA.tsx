@@ -5,7 +5,6 @@ import { ArrowRightIcon } from '@/components/ui/icons'
 export function FinalCTA() {
   return (
     <section
-      id="pricing"
       className="relative overflow-hidden border-t border-white/[0.05] bg-[#0a0b0b]"
       aria-label="Get started"
     >
@@ -30,24 +29,20 @@ export function FinalCTA() {
             Start today
           </p>
           <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl lg:leading-[1.12]">
-            Ready to understand your research
+            Ready to put all your field data{' '}
             <span className="bg-gradient-to-r from-white via-slate-300 to-white bg-clip-text text-transparent">
-              differently?
+              to work?
             </span>
           </h2>
           <p className="mx-auto mt-5 max-w-xl whitespace-pre-line text-base leading-7 text-slate-400 sm:text-lg">
-            Turn interviews, documents and field data into organised, searchable and
-            evidence-backed insight.
+            Bring it together in one place, let ResearchMind process it, and create summaries and
+            reports in minutes.
           </p>
 
           <div className="relative mt-10 inline-block">
-            <div
-              className="absolute inset-0 -z-10 scale-125 rounded-full bg-white/15 blur-3xl"
-              aria-hidden="true"
-            />
             <Link
               to="/projects"
-              className="group inline-flex h-13 items-center gap-2.5 rounded-xl bg-white px-8 text-[1.02rem] font-semibold text-[#060707] shadow-[0_0_40px_-10px_rgba(255,255,255,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-200 hover:shadow-[0_0_56px_-12px_rgba(255,255,255,0.65)]"
+              className="group inline-flex h-13 items-center gap-2.5 rounded-xl border border-white/25 px-8 text-[1.02rem] font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/50"
             >
               Start researching
               <ArrowRightIcon className="size-5 transition-transform duration-200 group-hover:translate-x-1" />

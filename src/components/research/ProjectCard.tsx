@@ -10,9 +10,10 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, onDelete }: ProjectCardProps) {
   const metrics = [
-    { label: 'interviews', value: project.interviewCount },
-    { label: 'focus groups', value: project.focusGroupCount },
-    { label: 'documents', value: project.documentCount },
+    {
+      label: project.documentCount === 1 ? 'research file' : 'research files',
+      value: project.documentCount,
+    },
   ]
 
   return (

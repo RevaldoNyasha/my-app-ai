@@ -31,12 +31,6 @@ export function ThemeCard({ theme }: { theme: ResearchTheme }) {
           </dd>
         </div>
         <div>
-          <dt className="text-[0.68rem] uppercase tracking-wide text-ink-400">Participants</dt>
-          <dd className="text-[0.95rem] font-semibold tabular-nums text-ink-900">
-            {theme.participantCount}
-          </dd>
-        </div>
-        <div>
           <dt className="text-[0.68rem] uppercase tracking-wide text-ink-400">Sources</dt>
           <dd className="text-[0.95rem] font-semibold tabular-nums text-ink-900">
             {theme.sourceCount}

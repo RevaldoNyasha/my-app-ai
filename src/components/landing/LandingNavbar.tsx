@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { ArrowRightIcon, CloseIcon, MenuIcon, SparkleIcon } from '@/components/ui/icons'
+
+const NAV_LINKS = [
+  { label: 'Platform', to: '/platform' },
+  { label: 'Pricing', to: '/pricing' },
+  { label: 'Resources', to: '/resources' },
+  { label: 'Contact', to: '/contact' },
+]
 
 export function LandingNavbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -35,10 +42,27 @@ export function LandingNavbar() {
           </span>
         </Link>
 
+        <nav className="ml-10 hidden items-center gap-1 lg:flex" aria-label="Main">
+          {NAV_LINKS.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={({ isActive }) =>
+                [
+                  'rounded-lg px-3 py-1.5 text-[0.88rem] font-medium transition-colors',
+                  isActive ? 'text-white' : 'text-slate-400 hover:text-white',
+                ].join(' ')
+              }
+            >
+              {link.label}
+            </NavLink>
+          ))}
+        </nav>
+
         <div className="ml-auto hidden items-center gap-2.5 lg:flex">
           <Link
             to="/projects"
-            className="group inline-flex h-9.5 items-center gap-2 rounded-xl bg-white px-4 text-[0.9rem] font-semibold text-[#060707] shadow-[0_0_22px_-8px_rgba(255,255,255,0.45)] transition-all duration-200 hover:-translate-y-px hover:bg-slate-200"
+            className="group inline-flex h-9.5 items-center gap-2 rounded-xl border border-white/20 px-4 text-[0.9rem] font-semibold text-white transition-all duration-200 hover:-translate-y-px hover:border-white/40"
           >
             Get started
             <ArrowRightIcon className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -50,7 +74,7 @@ export function LandingNavbar() {
           onClick={() => setOpen((value) => !value)}
           aria-label={open ? 'Close navigation' : 'Open navigation'}
           aria-expanded={open}
-          className="ml-auto inline-flex size-9.5 items-center justify-center rounded-lg border border-white/[0.08] text-slate-200 transition-colors hover:bg-white/[0.05] lg:hidden"
+          className="ml-auto inline-flex size-9.5 items-center justify-center rounded-lg border border-white/[0.08] text-slate-200 transition-colors hover:border-white/25 lg:hidden"
         >
           {open ? <CloseIcon className="size-5" /> : <MenuIcon className="size-5" />}
         </button>
@@ -58,11 +82,26 @@ export function LandingNavbar() {
 
       {open ? (
         <div className="border-t border-white/[0.06] bg-[#060707]/95 backdrop-blur-xl lg:hidden">
-          <nav className="mx-auto flex max-w-7xl flex-col px-5 py-4 sm:px-8" aria-label="Account">
+          <nav className="mx-auto flex max-w-7xl flex-col px-5 py-4 sm:px-8" aria-label="Main">
+            {NAV_LINKS.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                onClick={() => setOpen(false)}
+                className={({ isActive }) =>
+                  [
+                    'rounded-lg px-2 py-2.5 text-[0.95rem] font-medium transition-colors',
+                    isActive ? 'text-white' : 'text-slate-400 hover:text-white',
+                  ].join(' ')
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
             <Link
               to="/projects"
               onClick={() => setOpen(false)}
-              className="mt-2.5 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[0.92rem] font-semibold text-[#060707]"
+              className="mt-2.5 inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-2.5 text-[0.92rem] font-semibold text-white"
             >
               Get started
               <ArrowRightIcon className="size-4" />

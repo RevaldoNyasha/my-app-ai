@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { CardIcon, CheckIcon, DownloadIcon, SparkleIcon } from '@/components/ui/icons'
 import { useToast } from '@/hooks/useToast'
+import { BILLING_INTERVALS, formatCount, formatPrice, planLimitsSummary } from '@/lib/billing'
 import { formatDate } from '@/lib/format'
 import { getSubscription, listBillingPlans, listInvoices } from '@/services/billingService'
 import type {
@@ -35,19 +36,6 @@ const INVOICE_TONES: Record<Invoice['status'], 'success' | 'warning' | 'neutral'
   refunded: 'neutral',
 }
 
-const INTERVALS: { value: BillingInterval; label: string }[] = [
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'annual', label: 'Annual' },
-]
-
-function formatCount(value: number): string {
-  return value.toLocaleString('en-GB')
-}
-
-function formatLimit(value: number): string {
-  return value === -1 ? 'Unlimited' : formatCount(value)
-}
-
 function formatUsageValue(value: number, unit: string): string {
   return unit ? `${value} ${unit}` : formatCount(value)
 }
@@ -55,38 +43,6 @@ function formatUsageValue(value: number, unit: string): string {
 function usagePercent(used: number, limit: number): number {
   if (limit <= 0) return 0
   return Math.min(100, Math.round((used / limit) * 100))
-}
-
-function planLimitsSummary(plan: BillingPlan): string {
-  const seats =
-    plan.limits.seats === -1
-      ? 'Unlimited seats'
-      : `${plan.limits.seats} ${plan.limits.seats === 1 ? 'seat' : 'seats'}`
-
-  return [
-    `${formatLimit(plan.limits.documents)} documents`,
-    `${formatLimit(plan.limits.queries)} queries`,
-    seats,
-  ].join(' · ')
-}
-
-function formatPrice(
-  plan: BillingPlan,
-  interval: BillingInterval,
-): { amount: string; note: string | null } {
-  const price = interval === 'annual' ? plan.annualPrice : plan.monthlyPrice
-
-  if (price === null) {
-    return { amount: 'Custom', note: 'Tailored to your institution' }
-  }
-  if (price === 0) {
-    return { amount: 'Free', note: null }
-  }
-
-  return {
-    amount: `$${price}`,
-    note: interval === 'annual' ? 'per month, billed yearly' : null,
-  }
 }
 
 function UsageBar({ usage }: { usage: SubscriptionUsage }) {
@@ -330,7 +286,7 @@ export function SubscriptionPage() {
             title="Change plan"
             action={
               <div className="inline-flex rounded-xl border border-ink-200 bg-surface p-0.5">
-                {INTERVALS.map((option) => (
+                {BILLING_INTERVALS.map((option) => (
                   <button
                     key={option.value}
                     type="button"

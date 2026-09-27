@@ -93,8 +93,6 @@ export function ProjectLayout() {
     refreshProject,
   }
 
-  const meta = `${project.documentCount} documents · ${project.interviewCount} interviews · ${project.focusGroupCount} focus groups`
-
   return (
     <div className="flex h-full min-h-0">
       <div className="flex min-w-0 flex-1 flex-col">
@@ -122,7 +120,6 @@ export function ProjectLayout() {
                   </Badge>
                 )}
               </div>
-              <p className="mt-1 text-[0.76rem] text-ink-500">{meta}</p>
             </div>
           </div>
 
@@ -137,7 +134,7 @@ export function ProjectLayout() {
                     'flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[0.8rem] font-medium transition-colors',
                     isActive
                       ? 'border-neutral-800 bg-neutral-800 text-white shadow-sm'
-                      : 'border-transparent text-ink-900 hover:border-ink-100 hover:bg-white/70',
+                      : 'border-transparent text-ink-900 hover:border-ink-300',
                   ].join(' ')
                 }
               >
