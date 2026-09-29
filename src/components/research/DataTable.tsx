@@ -5,7 +5,6 @@ import {
   ClockIcon,
   DotsIcon,
   ExclamationIcon,
-  ReportIcon,
   RetryIcon,
   SourceIcon,
   SparkleIcon,
@@ -83,7 +82,7 @@ function RowActions({
   onSummary?: (document: ResearchDocument) => void
   onTranscript?: (document: ResearchDocument) => void
 }) {
-  const { comingSoon, showToast } = useToast()
+  const { showToast } = useToast()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const [menuPos, setMenuPos] = useState<{ top?: number; bottom?: number; right: number }>()
@@ -101,7 +100,7 @@ function RowActions({
   const toggleMenu = () => {
     if (!buttonRef.current) return
     const rect = buttonRef.current.getBoundingClientRect()
-    const menuHeight = isFailed ? 44 : onSummary ? 184 : 148
+    const menuHeight = isFailed ? 44 : onSummary ? 148 : 112
     const gap = 6
     const opensUp = rect.bottom + gap + menuHeight > window.innerHeight
     setMenuPos(
@@ -208,18 +207,6 @@ function RowActions({
                 >
                   <CaptionsIcon className="size-4 shrink-0 text-ink-400" />
                   Transcript
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    close()
-                    comingSoon('Generating a report')
-                  }}
-                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[0.82rem] font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-900"
-                >
-                  <ReportIcon className="size-4 shrink-0 text-ink-400" />
-                  Report
                 </button>
                 <div className="my-1 border-t border-ink-100" />
                 <button
