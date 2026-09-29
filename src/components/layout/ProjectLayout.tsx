@@ -8,7 +8,7 @@ import {
   MenuIcon,
   ReportIcon,
 } from '@/components/ui/icons'
-import { Badge, Dot } from '@/components/ui/Badge'
+import { Badge } from '@/components/ui/Badge'
 import { EvidencePanel } from '@/components/research/EvidencePanel'
 import { getProject } from '@/services/projectService'
 import { useAuth } from '@/auth/AuthContext'
@@ -111,14 +111,7 @@ export function ProjectLayout() {
                 <h1 className="truncate font-serif text-[1.15rem] font-semibold tracking-tight text-ink-900">
                   {project.name}
                 </h1>
-                {project.status === 'archived' ? (
-                  <Badge tone="neutral">Archived</Badge>
-                ) : (
-                  <Badge tone="success">
-                    <Dot tone="success" />
-                    Active
-                  </Badge>
-                )}
+                {project.status === 'archived' ? <Badge tone="neutral">Archived</Badge> : null}
               </div>
             </div>
           </div>
